@@ -1,0 +1,142 @@
+.page {
+    width: 100%;
+    min-height: 100vh;
+    background: #FBF2F9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    width: 100%;
+    max-width: 500px;
+    background: #6C5CE7;
+    box-shadow: 0px 4px 30px 15px rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 16px;
+    margin: 20px;
+}
+
+.logoWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    width: 100px;
+    height: 100px;
+}
+
+.brandName {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 30px;
+    color: #FFFFFF;
+}
+
+.title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 30px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .logo {
+        width: 80px !important;
+        height: 80px !important;
+    }
+    .brandName, .title {
+        font-size: 24px !important;
+    }
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    align-items: center;
+}
+
+.label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #FFFFFF;
+    margin-bottom: 4px;
+    width: 100%;
+    max-width: 328px;
+    align-self: center;
+}
+
+.input {
+    width: 100%;
+    max-width: 328px;
+    height: 44px;
+    background: #FFFFFF;
+    border-radius: 15px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+    padding: 0 15px;
+    align-self: center;
+    box-sizing: border-box;
+}
+
+.input::placeholder {
+    color: #EEEEEE;
+}
+
+.error {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: #FF7675;
+    align-self: center;
+}
+
+.loginBtn {
+    width: 136px;
+    height: 49px;
+    background: #FF7675;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: #FFFFFF;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.loginBtn:hover {
+    opacity: 0.9;
+}
+
+.signupText {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+.signupLink {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.signupLink:hover {
+    opacity: 0.8;
+}

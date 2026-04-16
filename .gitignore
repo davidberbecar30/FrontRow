@@ -1,0 +1,40 @@
+# ─── Node modules ─────────────────────────────────────────
+node_modules/
+front_row_gui/node_modules/
+front_row_backend/node_modules/
+
+# ─── Build output ─────────────────────────────────────────
+front_row_gui/dist/
+front_row_gui/.vite/
+
+# ─── Coverage reports ─────────────────────────────────────
+front_row_gui/coverage/
+front_row_backend/coverage/
+
+# ─── Environment variables ────────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+
+# ─── Logs ────────────────────────────────────────────────
+*.log
+npm-debug.log*
+nodemon-debug.log*
+
+# ─── OS files ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── IDE files ───────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── Playwright ──────────────────────────────────────────
+front_row_gui/test-results/
+front_row_gui/playwright-report/
+front_row_gui/.playwright/

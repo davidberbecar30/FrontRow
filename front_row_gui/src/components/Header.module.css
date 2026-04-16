@@ -1,0 +1,73 @@
+.header {
+    width: 100%;
+    min-height: 81px;
+    background: linear-gradient(90deg, #6C5CE7 0%, #AC67B6 66.83%, #FF7675 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.logoWrapper {
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logoImg {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.header h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.headerIcons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.icon {
+    width: 28px;
+    height: 28px;
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px 20px;
+    }
+
+    .logoImg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .icon {
+        width: 24px;
+        height: 24px;
+    }
+}

@@ -1,0 +1,144 @@
+.page {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #FBF2F9;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* LEFT PANEL */
+.frame5 {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: #FFFFFF;
+    overflow: hidden;
+}
+
+.frame5 img {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* RIGHT PANEL */
+.frame6 {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    left: 50%;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 60px;
+    gap: 0;
+}
+
+/* LOGO ROW */
+.logoText {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.logo {
+    width: 158px;
+    height: auto;
+}
+
+.FR {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 96px;
+    line-height: 1;
+    color: #6C5CE7;
+    margin: 0;
+}
+
+/* TAGLINE */
+.tagline {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 25px;
+    line-height: 200%;
+    text-align: center;
+    color: #6C5CE7;
+    margin: 0 0 8px 0;
+}
+
+/* DESCRIPTION */
+.description {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 200%;
+    text-align: center;
+    color: #6C5CE7;
+    margin: 0 0 16px 0;
+}
+
+/* GET STARTED */
+.getStarted {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 25px;
+    line-height: 200%;
+    text-align: center;
+    color: #6C5CE7;
+    margin: 0 0 8px 0;
+}
+
+/* BROWSE BUTTON */
+.browseBtn {
+    width: 219px;
+    height: 56px;
+    background: #6C5CE7;
+    box-shadow: 0px 4px 15px 10px rgba(255, 0, 251, 0.25);
+    border-radius: 15px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #FFFFFF;
+    cursor: pointer;
+    margin-bottom: 24px;
+}
+
+/* LOGIN + REGISTER ROW */
+.authRow {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.authBtn {
+    box-sizing: border-box;
+    width: 136px;
+    height: 49px;
+    background: transparent;
+    border: 2px solid #FF7675;
+    filter: drop-shadow(0px 4px 20px rgba(0, 0, 0, 0.25));
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #FF7675;
+    cursor: pointer;
+}
+
+.authBtn:hover {
+    background: #FF7675;
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+}

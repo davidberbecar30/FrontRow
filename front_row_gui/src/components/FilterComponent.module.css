@@ -1,0 +1,87 @@
+.filterDiv {
+    width: 100%;
+    min-height: 125px;
+    background-image: url("/src/assets/masterBG.jpeg");
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.filterFrame {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.locationFrame, .datesFrame, .searchFrame {
+    box-sizing: border-box;
+    position: relative;
+    width: 280px;
+    height: 83px;
+    background: #FFFFFF;
+    border: 2.55px solid #FF7675;
+    border-radius: 6.39px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+
+.locationIcon, .datesIcon, .searchIcon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.locationIcon img, .datesIcon img, .searchIcon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.contentWrapper {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    flex: 1;
+}
+
+.locationLabel, .datesLabel, .searchLabel {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: #000000;
+    margin: 0;
+}
+
+.locationInput, .datesInput, .searchInput {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.48);
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .filterFrame {
+        flex-direction: column;
+        align-items: center;
+    }
+    .locationFrame, .datesFrame, .searchFrame {
+        width: 100%;
+        max-width: 400px;
+    }
+}

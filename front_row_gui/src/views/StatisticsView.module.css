@@ -1,0 +1,192 @@
+.statisticsPage {
+    width: 100%;
+    min-height: 100vh;
+    background: #F5EEF8;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    padding: 16px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.whatsHappening {
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: #7B5EE8;
+    margin: 0;
+}
+
+.description {
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    color: #8878B0;
+    margin: 0 0 20px 0;
+}
+
+.topRow, .bottomRow {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.card {
+    flex: 1;
+    background: #FFFFFF;
+    border: 0.5px solid rgba(120, 80, 200, 0.12);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .topRow, .bottomRow {
+        flex-direction: column;
+    }
+    .whatsHappening {
+        font-size: 28px;
+    }
+}
+
+.cardTitle {
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #2A1A5E;
+    margin: 0 0 4px 0;
+}
+
+.cardSubtitle {
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    color: #9988BB;
+    margin: 0 0 15px 0;
+}
+
+.pieDiv, .barDiv {
+    width: 100%;
+    height: 300px;
+    position: relative;
+}
+
+.trendingTable {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.trendingHeader, .trendingRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    min-width: 600px;
+}
+
+.trendingHeader {
+    border-bottom: 0.5px solid rgba(120, 80, 200, 0.1);
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    color: #9988BB;
+}
+
+.trendingRow {
+    border-bottom: 0.5px solid rgba(120, 80, 200, 0.07);
+}
+
+.thNum, .trendingNum {
+    width: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    font-family: 'Arial';
+}
+
+.thEvent, .trendingInfo { flex: 2; }
+.thCategory, .trendingCategory { width: 80px; }
+.thTickets { flex: 1; }
+.thStatus, .trendingStatus { width: 100px; }
+
+.trendingIcon { font-size: 16px; width: 24px; }
+
+.trendingTitle {
+    font-family: 'Arial', sans-serif;
+    font-size: 13px;
+    color: #2A1A5E;
+    margin: 0;
+}
+
+.trendingVenue {
+    font-family: 'Arial', sans-serif;
+    font-size: 11px;
+    color: #9988BB;
+    margin: 0;
+}
+
+.trendingCategory, .trendingStatus {
+    font-family: 'Arial', sans-serif;
+    font-size: 11px;
+    padding: 4px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* ─── Tickets ─── */
+.ticketsList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.ticketRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.ticketName {
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    color: #2A1A5E;
+    width: 100px;
+    flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+    .ticketName {
+        width: 150px;
+    }
+}
+
+.ticketBarBg {
+    flex: 1;
+    height: 10px;
+    background: #F0EAFF;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.ticketBarFill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s;
+}
+
+.ticketCount {
+    font-family: 'Arial', sans-serif;
+    font-size: 11px;
+    color: #9988BB;
+    width: 50px;
+    text-align: right;
+}

@@ -1,0 +1,299 @@
+.page {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: #FBF2F9;
+    font-family: 'Inter', sans-serif;
+}
+
+/* HEADER */
+.header {
+    width: 100%;
+    height: 81px;
+    background: linear-gradient(90deg, #6C5CE7 0%, #AC67B6 66.83%, #FF7675 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: relative;
+}
+
+.logo {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 30px;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.headerIcons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #E3E3E3;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+}
+
+/* FILTER BANNER */
+.filterBanner {
+    width: 100%;
+    height: 125px;
+    background: linear-gradient(90deg, #6C5CE7 0%, #AC67B6 66.83%, #FF7675 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filterBar {
+    display: flex;
+    flex-direction: row;
+    width: 816px;
+    height: 83px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.filterField {
+    box-sizing: border-box;
+    flex: 1;
+    height: 83px;
+    background: #FFFFFF;
+    border: 2.55px solid #FF7675;
+    border-radius: 6px;
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.filterLabel {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 12.77px;
+    color: #000000;
+}
+
+.filterPlaceholder {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 10.22px;
+    color: rgba(0, 0, 0, 0.48);
+}
+
+.filterInput {
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #000;
+    background: transparent;
+    width: 100%;
+}
+
+/* PICKED FOR YOU */
+.pickedSection {
+    margin: 20px 20px;
+    background: #FFFFFF;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+    padding: 16px 20px 20px;
+}
+
+.pickedHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.pickedTitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: #6C5CE7;
+    margin: 0;
+}
+
+.vibeMatchBadge {
+    background: linear-gradient(180deg, rgba(108, 92, 231, 0.19) 0%, rgba(60, 51, 129, 0.19) 100%);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #5A3AB8;
+}
+
+.categoryPills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.pill, .pillActive {
+    border: 1px solid #6C5CE7;
+    border-radius: 20px;
+    padding: 0 12px;
+    height: 26px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.pill {
+    color: #6C5CE7;
+    background: #FFFFFF;
+}
+
+.pillActive {
+    background: #6C5CE7;
+    color: #FFFFFF;
+}
+
+.pickedCards {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pickedCard {
+    width: 100%;
+    max-width: 300px;
+    height: 95px;
+    background: #FBF2F9;
+    box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.25);
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    cursor: pointer;
+    position: relative;
+}
+
+.pickedCardImg {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.pickedCardInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.pickedCardTitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #6C5CE7;
+    margin: 0;
+}
+
+.pickedCardPrice {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #FF7675;
+    margin: 0;
+}
+
+.pickedCardMatch {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: rgba(108, 92, 231, 0.7);
+    margin: 0;
+}
+
+.cardsSection {
+    padding: 24px 20px;
+    width: 100%;
+}
+
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+@media (max-width: 1100px) {
+    .cardsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .cardsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .pickedTitle {
+        font-size: 24px;
+    }
+    .pickedSection {
+        padding: 16px 12px 20px;
+    }
+}
+/* PAGINATION */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 32px 0;
+}
+
+.paginationBox {
+    box-sizing: border-box;
+    background: #FFFFFF;
+    border: 5px solid #6C5CE7;
+    box-shadow: 0px 4px 5px 7px rgba(0, 0, 0, 0.25);
+    border-radius: 15px;
+    padding: 4px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pageBtn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 25px;
+    color: rgba(108, 92, 231, 0.9);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.pageBtnActive {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 25px;
+    color: #FFFFFF;
+    background: #6C5CE7;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0 8px;
+}
