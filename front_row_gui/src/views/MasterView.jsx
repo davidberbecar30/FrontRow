@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './MasterView.module.css'
 import Header from "../components/Header.jsx"
@@ -6,6 +6,7 @@ import FilterComponent from "../components/FilterComponent.jsx"
 import EventCard from "../components/EventCard.jsx"
 import { getEvents } from '../api/eventsAPI.js'
 import { getRecentlyViewed } from '../cookies/cookieManager.js'
+import { useWebSocket } from '../hooks/useWebSocket.js'
 
 const ITEMS_PER_PAGE = 4
 
@@ -21,27 +22,35 @@ function MasterView() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
 
-    // ─── Fetch events from API ─────────────────────────────
-    useEffect(() => {
-        async function loadEvents() {
-            try {
-                setLoading(true)
-                const data = await getEvents({
-                    page: currentPage,
-                    limit: ITEMS_PER_PAGE,
-                    search,
-                })
-                setEvents(data.data)
-                setTotalPages(data.pagination.totalPages)
-            } catch (err) {
-                setError(err.message || 'Failed to load events')
-            } finally {
-                setLoading(false)
-            }
+    const loadEvents = useCallback(async () => {
+        try {
+            setLoading(true)
+            const data = await getEvents({
+                page: currentPage,
+                limit: ITEMS_PER_PAGE,
+                search,
+            })
+            setEvents(data.data)
+            setTotalPages(data.pagination.totalPages)
+        } catch (err) {
+            setError(err.message || 'Failed to load events')
+        } finally {
+            setLoading(false)
         }
+    }, [currentPage, search])
+
+    useEffect(() => {
         loadEvents()
         setRecentlyViewed(getRecentlyViewed())
-    }, [currentPage, search])
+    }, [loadEvents])
+
+    // 👈 useWebSocket after loadEvents is defined
+    useWebSocket((message) => {
+        if (message.type === 'NEW_EVENT') {
+            console.log('New event received:', message.data.title)
+            loadEvents()
+        }
+    })
 
     const categories = ['🔥 Hype', '🧘 Chill', '💗 Date', '🏆 Sports']
     const picked = events.slice(0, 3)
@@ -106,7 +115,7 @@ function MasterView() {
                         <EventCard
                             key={event.id}
                             event={event}
-                            onFavoriteToggle={() => {}}
+                            onFavoriteToggle={loadEvents}
                         />
                     ))}
                 </div>
