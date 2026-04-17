@@ -8,6 +8,7 @@ import FavoritesView from "./views/FavoritesView.jsx";
 import LoginView from "./views/LoginView.jsx";
 import RegisterView from "./views/RegisterView.jsx";
 import StatisticsView from "./views/StatisticsView.jsx";
+import OfflineIndicator from "./components/OfflineIndicator.jsx";
 
 function App() {
     return(

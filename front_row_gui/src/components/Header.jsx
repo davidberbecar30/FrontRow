@@ -5,11 +5,14 @@ import favoriteIcon from '../assets/favorite_24dp_E3E3E3_FILL0_wght400_GRAD0_ops
 import menuIcon from '../assets/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
 import addIcon from '../assets/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
 import bidIcon from '../assets/bid_landscape_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
+import OfflineIndicator from "./OfflineIndicator.jsx";
 
 function Header() {
     const navigate = useNavigate()
 
     return (
+        <>
+            <OfflineIndicator/>
         <div className={styles.header}>
             <div className={styles.logoWrapper} onClick={() => navigate('/events')}>
                 <img src={logo} alt="FrontRow" className={styles.logoImg} />
@@ -30,6 +33,8 @@ function Header() {
                 </button>
             </div>
         </div>
+
+            </>
     )
 }
 
