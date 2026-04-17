@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import Header from "../components/Header.jsx";
 import styles from './StatisticsView.module.css';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { getStatistics } from "../api/eventsAPI.js";
+import {useWebSocket} from "../hooks/useWebSocket.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels, CategoryScale, LinearScale, BarElement);
 
@@ -15,20 +16,27 @@ function StatisticsView() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
 
-    useEffect(() => {
-        async function loadStats() {
-            try {
-                setLoading(true)
-                const data = await getStatistics()
-                setStats(data)
-            } catch (err) {
-                setError(err.message)
-            } finally {
-                setLoading(false)
-            }
+    const loadStats = useCallback(async () => {
+        try {
+            setLoading(true)
+            const data = await getStatistics()
+            setStats(data)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
         }
-        loadStats()
     }, [])
+
+    useEffect(() => {
+        loadStats()
+    }, [loadStats])
+
+    useWebSocket((message) => {
+        if (message.type === 'NEW_EVENT') {
+            loadStats()
+        }
+    })
 
     if (loading) return <p style={{ padding: '40px', color: '#6C5CE7' }}>Loading...</p>
     if (error) return <p style={{ padding: '40px', color: '#FF7675' }}>{error}</p>

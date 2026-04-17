@@ -1,6 +1,7 @@
 const routes=require("./router/router")
 const cors=require("cors")
 const express=require("express")
+const fakerRoutes=require("./router/fakerRoutes")
 
 const app=express()
 
@@ -8,6 +9,7 @@ app.use(cors())
 app.use(express.json())
 app.use('/images', express.static('public/images'))
 app.use("/events",routes)
+app.use("/faker",fakerRoutes)
 
 app.use((req, res) => {
     res.status(404).json({ error: `Route ${req.method} ${req.url} not found` })

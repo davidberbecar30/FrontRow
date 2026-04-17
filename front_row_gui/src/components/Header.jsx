@@ -10,6 +10,14 @@ import OfflineIndicator from "./OfflineIndicator.jsx";
 function Header() {
     const navigate = useNavigate()
 
+    async function startFaker() {
+        await fetch('http://localhost:3000/faker/start', { method: 'POST' })
+    }
+
+    async function stopFaker() {
+        await fetch('http://localhost:3000/faker/stop', { method: 'POST' })
+    }
+
     return (
         <>
             <OfflineIndicator/>
@@ -31,6 +39,8 @@ function Header() {
                 <button className={styles.iconBtn}>
                     <img src={menuIcon} alt="Menu" className={styles.icon} />
                 </button>
+                <button onClick={startFaker}>▶ Start Faker</button>
+                <button onClick={stopFaker}>⏹ Stop Faker</button>
             </div>
         </div>
 
