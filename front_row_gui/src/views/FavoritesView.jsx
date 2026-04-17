@@ -1,33 +1,58 @@
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getEvents } from '../api/eventsAPI.js'
 import styles from './FavoritesView.module.css'
 import Header from '../components/Header.jsx'
 import EventCard from '../components/EventCard.jsx'
-import { getEvents } from '../events/evetsList.js'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 function FavoritesView() {
     const navigate = useNavigate()
+    const [favorites, setFavorites] = useState([])
     const [activeFilter, setActiveFilter] = useState('All')
-    const [, forceUpdate] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
 
-    const allFavorites = getEvents().filter(e => e.favorited)
+    const categoryMap = {
+        'All': null,
+        'Concerts': 'Concert',
+        'Sports': 'Sports',
+        'Magic': 'Magic'
+    }
 
+    async function loadFavorites() {
+        try {
+            setLoading(true)
+            const data = await getEvents({ limit: 100 })
+            const favorited = data.data.filter(e => e.favorited)
+            setFavorites(favorited)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadFavorites()
+    }, [])
+
+    const filtered = activeFilter === 'All'
+        ? favorites
+        : favorites.filter(e => e.category === categoryMap[activeFilter])
 
     const categories = ['All', 'Concerts', 'Sports', 'Magic']
 
-    const filtered = activeFilter === 'All'
-        ? allFavorites
-        : allFavorites.filter(e => e.category === activeFilter)
+    if (loading) return <p style={{ padding: '40px', color: '#6C5CE7' }}>Loading...</p>
+    if (error) return <p style={{ padding: '40px', color: '#FF7675' }}>{error}</p>
 
     return (
         <div className={styles.page}>
             <Header />
-
             <div className={styles.content}>
                 <div className={styles.titleRow}>
                     <h1 className={styles.title}>MY FAVORITES</h1>
                     <div className={styles.countBadge}>
-                        <span className={styles.countText}>{allFavorites.length}</span>
+                        <span className={styles.countText}>{favorites.length}</span>
                     </div>
                 </div>
 
@@ -51,7 +76,7 @@ function FavoritesView() {
                             <EventCard
                                 key={event.id}
                                 event={event}
-                                onFavoriteToggle={() => forceUpdate(n => n + 1)}
+                                onFavoriteToggle={loadFavorites}
                             />
                         ))}
                     </div>

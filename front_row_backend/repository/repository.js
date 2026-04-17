@@ -9,6 +9,7 @@ class EventRepository{
             category: "Concert",
             description: "Experience Drake performing hits live.",
             favorited: true,
+            image: "http://localhost:3000/images/drakeCover.jpeg",
             dates: [
                 { date: "2026-08-24", location: "Los Angeles, CA", venue: "Crypto.com Arena" },
                 { date: "2026-09-01", location: "New York, NY", venue: "Madison Square Garden" },
@@ -22,6 +23,7 @@ class EventRepository{
             category: "Concert",
             description: "An unforgettable Bruno Mars live experience.",
             favorited: false,
+            image:"http://localhost:3000/images/bruno_mars.jpeg",
             dates: [
                 { date: "2026-09-12", location: "Nashville, TN", venue: "Bridgestone Arena" },
                 { date: "2026-09-20", location: "Atlanta, GA", venue: "State Farm Arena" },
@@ -34,6 +36,7 @@ class EventRepository{
             category: "Sports",
             description: "An electrifying NBA matchup between the Sacramento Kings and the LA Lakers.",
             favorited: false,
+            image: "http://localhost:3000/images/Kings-New-Logo-confirmed.png",
             dates: [
                 { date: "2026-12-06", location: "Sacramento, CA", venue: "Golden 1 Center" },
                 { date: "2026-12-20", location: "Los Angeles, CA", venue: "Crypto.com Arena" },
@@ -46,6 +49,7 @@ class EventRepository{
             category: "Magic",
             description: "Experience the impossible with David Blaine's breathtaking live magic show.",
             favorited: false,
+            image:"http://localhost:3000/images/david_bliane.jpg",
             dates: [
                 { date: "2026-10-03", location: "New York, NY", venue: "Madison Square Garden" },
                 { date: "2026-10-15", location: "Las Vegas, NV", venue: "MGM Grand Garden Arena" },

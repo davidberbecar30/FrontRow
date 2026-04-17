@@ -6,7 +6,7 @@ const app=express()
 
 app.use(cors())
 app.use(express.json())
-
+app.use('/images', express.static('public/images'))
 app.use("/events",routes)
 
 app.use((req, res) => {

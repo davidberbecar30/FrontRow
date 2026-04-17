@@ -1,32 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from "../components/Header.jsx";
 import styles from './StatisticsView.module.css';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-import { getEvents } from "../events/evetsList.js";
+import { getStatistics } from "../api/eventsAPI.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels, CategoryScale, LinearScale, BarElement);
 
 const COLORS = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
 
 function StatisticsView() {
-    const events = getEvents()
+    const [stats, setStats] = useState(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
 
-    const categoryMap = new Map()
-    for (const event of events) {
-        if (event.category === "Concert" || event.category === "Sports" || event.category === "Festival") {
-            categoryMap.set(event.category, (categoryMap.get(event.category) || 0) + 1)
-        } else {
-            categoryMap.set("Other", (categoryMap.get("Other") || 0) + 1)
+    useEffect(() => {
+        async function loadStats() {
+            try {
+                setLoading(true)
+                const data = await getStatistics()
+                setStats(data)
+            } catch (err) {
+                setError(err.message)
+            } finally {
+                setLoading(false)
+            }
         }
-    }
+        loadStats()
+    }, [])
 
-    const labels = Array.from(categoryMap.keys())
-    const numbers = Array.from(categoryMap.values())
+    if (loading) return <p style={{ padding: '40px', color: '#6C5CE7' }}>Loading...</p>
+    if (error) return <p style={{ padding: '40px', color: '#FF7675' }}>{error}</p>
+    if (!stats) return null
+
+    // ─── Pie chart data ────────────────────────────────────
+    const labels = Object.keys(stats.categoryBreakdown)
+    const numbers = Object.values(stats.categoryBreakdown)
 
     const pieData = {
-        labels: labels,
+        labels,
         datasets: [{
             label: "No. of events",
             data: numbers,
@@ -41,25 +54,26 @@ function StatisticsView() {
                 position: 'right',
                 align: 'center',
                 labels: {
-                    padding: 30,
-                    boxWidth: 15,
-                    font: { size: 18 }
+                    padding: 16,
+                    boxWidth: 12,
+                    font: { size: 12 }
                 },
             },
             datalabels: {
                 color: '#fff',
-                font: { weight: 'bold', size: 14 },
+                font: { weight: 'bold', size: 11 },
                 formatter: (value) => value,
             },
         },
         maintainAspectRatio: false
     }
 
+    // ─── Bar chart data ────────────────────────────────────
     const barData = {
-        labels: labels,
+        labels,
         datasets: [{
-            label: 'Available Tickets',
-            data: events.map(e => e.availableTickets),
+            label: 'Events by Category',
+            data: numbers,
             backgroundColor: COLORS,
         }]
     }
@@ -75,9 +89,8 @@ function StatisticsView() {
         maintainAspectRatio: false
     }
 
-    const trending = [...events].sort((a, b) => b.price - a.price).slice(0, 6)
-
-    const maxTickets = Math.max(...events.map(e => e.availableTickets))
+    // ─── Tickets availability ──────────────────────────────
+    const maxTickets = Math.max(...stats.ticketsAvailability.map(e => e.availableTickets))
 
     return (
         <div className={styles.statisticsPage}>
@@ -89,6 +102,7 @@ function StatisticsView() {
 
                 <div className={styles.topRow}>
 
+                    {/* ─── Pie chart ─── */}
                     <div className={styles.card}>
                         <p className={styles.cardTitle}>What people are going to</p>
                         <p className={styles.cardSubtitle}>Tap a category to explore</p>
@@ -97,6 +111,7 @@ function StatisticsView() {
                         </div>
                     </div>
 
+                    {/* ─── Trending ─── */}
                     <div className={styles.card}>
                         <p className={styles.cardTitle}>Trending right now</p>
                         <p className={styles.cardSubtitle}>Ranked by price</p>
@@ -106,10 +121,11 @@ function StatisticsView() {
                                 <span className={styles.thNum}>#</span>
                                 <span className={styles.thEvent}>Event</span>
                                 <span className={styles.thCategory}>Category</span>
+                                <span className={styles.thTickets}>Tickets</span>
                                 <span className={styles.thStatus}>Status</span>
                             </div>
 
-                            {trending.map((event, i) => (
+                            {stats.trending.map((event, i) => (
                                 <div key={event.id} className={styles.trendingRow}>
                                     <span className={styles.trendingNum} style={{ color: i < 3 ? '#7B5EE8' : '#C0AEE8' }}>
                                         {i + 1}
@@ -149,6 +165,7 @@ function StatisticsView() {
 
                 <div className={styles.bottomRow}>
 
+                    {/* ─── Bar chart ─── */}
                     <div className={styles.card}>
                         <p className={styles.cardTitle}>Events by category</p>
                         <p className={styles.cardSubtitle}>Total events available near you</p>
@@ -157,11 +174,12 @@ function StatisticsView() {
                         </div>
                     </div>
 
+                    {/* ─── Tickets availability ─── */}
                     <div className={styles.card}>
                         <p className={styles.cardTitle}>Tickets still available</p>
                         <p className={styles.cardSubtitle}>How many seats are left</p>
                         <div className={styles.ticketsList}>
-                            {events.map((event, index) => (
+                            {stats.ticketsAvailability.map((event, index) => (
                                 <div key={event.id} className={styles.ticketRow}>
                                     <span className={styles.ticketName}>
                                         {event.title.length > 18 ? event.title.slice(0, 18) + '...' : event.title}
@@ -180,7 +198,6 @@ function StatisticsView() {
                             ))}
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

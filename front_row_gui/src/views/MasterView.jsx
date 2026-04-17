@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getEvents } from '../events/evetsList.js'
 import styles from './MasterView.module.css'
-import Header from "../components/Header.jsx";
-import FilterComponent from "../components/FilterComponent.jsx";
-import EventCard from "../components/EventCard.jsx";
+import Header from "../components/Header.jsx"
+import FilterComponent from "../components/FilterComponent.jsx"
+import EventCard from "../components/EventCard.jsx"
+import { getEvents } from '../api/eventsAPI.js'
+import { getRecentlyViewed } from '../cookies/cookieManager.js'
 
 const ITEMS_PER_PAGE = 4
 
@@ -14,19 +15,33 @@ function MasterView() {
     const [location, setLocation] = useState('')
     const [activeCategory, setActiveCategory] = useState('🔥 Hype')
     const [currentPage, setCurrentPage] = useState(1)
-    const [, forceUpdate] = useState(0)
+    const [events, setEvents] = useState([])
+    const [totalPages, setTotalPages] = useState(1)
+    const [recentlyViewed, setRecentlyViewed] = useState(getRecentlyViewed())
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
 
-    const events = getEvents()
-
-    const filtered = events.filter(e =>
-        e.title.toLowerCase().includes(search.toLowerCase())
-    )
-
-    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
-    const paginated = filtered.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    )
+    // ─── Fetch events from API ─────────────────────────────
+    useEffect(() => {
+        async function loadEvents() {
+            try {
+                setLoading(true)
+                const data = await getEvents({
+                    page: currentPage,
+                    limit: ITEMS_PER_PAGE,
+                    search,
+                })
+                setEvents(data.data)
+                setTotalPages(data.pagination.totalPages)
+            } catch (err) {
+                setError(err.message || 'Failed to load events')
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadEvents()
+        setRecentlyViewed(getRecentlyViewed())
+    }, [currentPage, search])
 
     const categories = ['🔥 Hype', '🧘 Chill', '💗 Date', '🏆 Sports']
     const picked = events.slice(0, 3)
@@ -35,7 +50,7 @@ function MasterView() {
     return (
         <div className={styles.page}>
             <div>
-                <Header/>
+                <Header />
             </div>
 
             <FilterComponent
@@ -47,6 +62,9 @@ function MasterView() {
                     setCurrentPage(1)
                 }}
             />
+
+            {loading && <p style={{ textAlign: 'center', color: '#6C5CE7' }}>Loading...</p>}
+            {error && <p style={{ textAlign: 'center', color: '#FF7675' }}>{error}</p>}
 
             <div className={styles.pickedSection}>
                 <div className={styles.pickedHeader}>
@@ -84,11 +102,11 @@ function MasterView() {
 
             <div className={styles.cardsSection}>
                 <div className={styles.cardsGrid}>
-                    {paginated.map(event => (
+                    {events.map(event => (
                         <EventCard
                             key={event.id}
                             event={event}
-                            onFavoriteToggle={() => forceUpdate(n => n + 1)}
+                            onFavoriteToggle={() => {}}
                         />
                     ))}
                 </div>

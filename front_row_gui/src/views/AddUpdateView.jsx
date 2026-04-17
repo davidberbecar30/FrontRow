@@ -1,30 +1,57 @@
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getEventById, addEvent, updateEvent } from '../events/evetsList.js'
+import { getEventById, addEvent, updateEvent } from '../api/eventsAPI.js'
 import Header from '../components/Header.jsx'
 import styles from './AddUpdateView.module.css'
+import { useRef } from 'react'
 
 function AddUpdateView() {
     const { id } = useParams()
     const navigate = useNavigate()
     const isEditing = Boolean(id)
-    const existing = isEditing ? getEventById(Number(id)) : null
     const fileInputRef = useRef(null)
 
     const [form, setForm] = useState({
-        title: existing?.title || '',
-        description: existing?.description || '',
-        dates: existing?.dates
-            ? existing.dates.map(d => `${d.location};${d.venue};${d.date}`).join('\n')
-            : '',
-        availableTickets: existing?.availableTickets || '',
-        price: existing?.price || '',
-        image: existing?.image || null,
-        imagePreview: existing?.image || null,
-        category: existing?.category || '',
+        title: '',
+        description: '',
+        dates: '',
+        availableTickets: '',
+        price: '',
+        image: null,
+        imagePreview: null,
+        category: '',
     })
-
     const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        if (isEditing) {
+            async function loadEvent() {
+                try {
+                    setLoading(true)
+                    const event = await getEventById(id)
+                    setForm({
+                        title: event.title || '',
+                        description: event.description || '',
+                        dates: event.dates
+                            ? event.dates.map(d => `${d.location};${d.venue};${d.date}`).join('\n')
+                            : '',
+                        availableTickets: event.availableTickets || '',
+                        price: event.price || '',
+                        image: event.image || null,
+                        imagePreview: event.image || null,
+                        category: event.category || '',
+                    })
+                } catch (err) {
+                    setError(err.message)
+                } finally {
+                    setLoading(false)
+                }
+            }
+            loadEvent()
+        }
+    }, [id])
 
     function validate() {
         const e = {}
@@ -36,7 +63,6 @@ function AddUpdateView() {
         } else {
             const lines = form.dates.trim().split('\n')
             const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-
             const invalidLines = lines.filter(line => {
                 const parts = line.split(';')
                 if (parts.length !== 3) return true
@@ -45,7 +71,6 @@ function AddUpdateView() {
                 if (!dateRegex.test(date)) return true
                 return false
             })
-
             if (invalidLines.length > 0) {
                 e.dates = 'Each line must be: Location;Venue;YYYY-MM-DD'
             }
@@ -83,7 +108,7 @@ function AddUpdateView() {
         })
     }
 
-    function handleSubmit() {
+    async function handleSubmit() {
         const e = validate()
         if (Object.keys(e).length > 0) {
             setErrors(e)
@@ -100,14 +125,19 @@ function AddUpdateView() {
             category: form.category.trim(),
         }
 
-        if (isEditing) {
-            updateEvent(Number(id), eventData)
-        } else {
-            addEvent(eventData)
+        try {
+            if (isEditing) {
+                await updateEvent(id, eventData)
+            } else {
+                await addEvent(eventData)
+            }
+            navigate('/events')
+        } catch (err) {
+            setError(err.message)
         }
-
-        navigate('/events')
     }
+
+    if (loading) return <p style={{ padding: '40px', color: '#6C5CE7' }}>Loading...</p>
 
     return (
         <div className={styles.page}>
@@ -116,6 +146,8 @@ function AddUpdateView() {
                 <h1 className={styles.pageTitle}>
                     {isEditing ? 'UPDATE EVENT' : 'ADD EVENT'}
                 </h1>
+
+                {error && <p style={{ color: '#FF7675', textAlign: 'center' }}>{error}</p>}
 
                 <div className={styles.formCard}>
                     <div className={styles.fieldGroup}>
@@ -128,6 +160,7 @@ function AddUpdateView() {
                         />
                         {errors.title && <span style={{ color: '#FF7675', fontSize: '11px' }}>{errors.title}</span>}
                     </div>
+
                     <div className={styles.fieldGroup}>
                         <p className={styles.fieldLabel}>Event Description</p>
                         <textarea
@@ -184,7 +217,6 @@ function AddUpdateView() {
                         />
                     </div>
 
-                    {/* Image Upload */}
                     <div className={styles.fieldGroup}>
                         <p className={styles.fieldLabel}>Event Image</p>
                         <div
@@ -213,7 +245,6 @@ function AddUpdateView() {
                             Finish
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
