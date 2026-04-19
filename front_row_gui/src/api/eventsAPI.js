@@ -265,3 +265,51 @@ export async function getStatistics() {
         }
     }
 }
+
+const TICKETS_URL = 'http://localhost:3000'
+
+export async function getTicketsByEventId(eventId) {
+    const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets`)
+    if (!response.ok) throw new Error('Failed to fetch tickets')
+    return await response.json()
+}
+
+export async function getTicketStatsByEventId(eventId) {
+    const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets/stats`)
+    if (!response.ok) throw new Error('Failed to fetch ticket stats')
+    return await response.json()
+}
+
+export async function addTicket(eventId, ticketData) {
+    const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketData)
+    })
+    if (!response.ok) throw new Error('Failed to add ticket')
+    return await response.json()
+}
+
+export async function updateTicket(id, ticketData) {
+    const response = await fetch(`${TICKETS_URL}/tickets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketData)
+    })
+    if (!response.ok) throw new Error('Failed to update ticket')
+    return await response.json()
+}
+
+export async function deleteTicket(id) {
+    const response = await fetch(`${TICKETS_URL}/tickets/${id}`, {
+        method: 'DELETE'
+    })
+    if (!response.ok) throw new Error('Failed to delete ticket')
+    return await response.json()
+}
+
+export async function getGlobalTicketStats() {
+    const response = await fetch(`${TICKETS_URL}/tickets/global-stats`)
+    if (!response.ok) throw new Error('Failed to fetch global stats')
+    return await response.json()
+}

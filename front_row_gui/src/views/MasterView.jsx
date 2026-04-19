@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './MasterView.module.css'
 import Header from "../components/Header.jsx"
@@ -15,40 +15,131 @@ function MasterView() {
     const [search, setSearch] = useState('')
     const [location, setLocation] = useState('')
     const [activeCategory, setActiveCategory] = useState('🔥 Hype')
-    const [currentPage, setCurrentPage] = useState(1)
     const [events, setEvents] = useState([])
+    const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [recentlyViewed, setRecentlyViewed] = useState(getRecentlyViewed())
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [hasMore, setHasMore] = useState(true)
 
-    const loadEvents = useCallback(async () => {
+    // ─── Prefetch cache ────────────────────────────────────
+    const prefetchCache = useRef({})
+
+    // ─── Fetch a specific page ─────────────────────────────
+    async function fetchPage(page, search) {
+        // check cache first
+        const cacheKey = `${page}-${search}`
+        if (prefetchCache.current[cacheKey]) {
+            console.log(`Cache hit for page ${page}`)
+            return prefetchCache.current[cacheKey]
+        }
+
+        const data = await getEvents({
+            page,
+            limit: ITEMS_PER_PAGE,
+            search,
+        })
+
+        // save to cache
+        prefetchCache.current[cacheKey] = data
+        return data
+    }
+
+    // ─── Prefetch next page in background ─────────────────
+    async function prefetchPage(page, search) {
+        const cacheKey = `${page}-${search}`
+        if (prefetchCache.current[cacheKey]) return // already cached
+        console.log(`Prefetching page ${page}`)
         try {
-            setLoading(true)
             const data = await getEvents({
-                page: currentPage,
+                page,
                 limit: ITEMS_PER_PAGE,
                 search,
             })
+            prefetchCache.current[cacheKey] = data
+        } catch (err) {
+            console.error('Prefetch failed:', err)
+        }
+    }
+
+    // ─── Load initial page ─────────────────────────────────
+    const loadInitial = useCallback(async () => {
+        try {
+            setLoading(true)
+            setEvents([])
+            setCurrentPage(1)
+            prefetchCache.current = {} // clear cache on search change
+
+            const data = await fetchPage(1, search)
             setEvents(data.data)
             setTotalPages(data.pagination.totalPages)
+            setHasMore(data.pagination.totalPages > 1)
+
+            // prefetch page 2 in background
+            if (data.pagination.totalPages > 1) {
+                prefetchPage(2, search)
+            }
         } catch (err) {
             setError(err.message || 'Failed to load events')
         } finally {
             setLoading(false)
         }
-    }, [currentPage, search])
+    }, [search])
 
+    // ─── Load next page (append) ───────────────────────────
+    const loadNextPage = useCallback(async () => {
+        if (loading || !hasMore) return
+
+        const nextPage = currentPage + 1
+        if (nextPage > totalPages) {
+            setHasMore(false)
+            return
+        }
+
+        try {
+            setLoading(true)
+            const data = await fetchPage(nextPage, search)
+            setEvents(prev => [...prev, ...data.data]) // 👈 append not replace
+            setCurrentPage(nextPage)
+            setHasMore(nextPage < data.pagination.totalPages)
+
+            // prefetch the page after next
+            if (nextPage + 1 <= data.pagination.totalPages) {
+                prefetchPage(nextPage + 1, search)
+            }
+        } catch (err) {
+            setError(err.message || 'Failed to load more events')
+        } finally {
+            setLoading(false)
+        }
+    }, [loading, hasMore, currentPage, totalPages, search])
+
+    // ─── Scroll detection ──────────────────────────────────
     useEffect(() => {
-        loadEvents()
-        setRecentlyViewed(getRecentlyViewed())
-    }, [loadEvents])
+        function handleScroll() {
+            const nearBottom =
+                window.scrollY + window.innerHeight >= document.body.scrollHeight - 300
+            if (nearBottom && !loading && hasMore) {
+                loadNextPage()
+            }
+        }
 
-    // 👈 useWebSocket after loadEvents is defined
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [loading, hasMore, loadNextPage])
+
+    // ─── Load on mount and search change ──────────────────
+    useEffect(() => {
+        loadInitial()
+        setRecentlyViewed(getRecentlyViewed())
+    }, [loadInitial])
+
+    // ─── WebSocket ─────────────────────────────────────────
     useWebSocket((message) => {
         if (message.type === 'NEW_EVENT') {
             console.log('New event received:', message.data.title)
-            loadEvents()
+            loadInitial()
         }
     })
 
@@ -68,11 +159,9 @@ function MasterView() {
                 search={search}
                 onSearchChange={(val) => {
                     setSearch(val)
-                    setCurrentPage(1)
                 }}
             />
 
-            {loading && <p style={{ textAlign: 'center', color: '#6C5CE7' }}>Loading...</p>}
             {error && <p style={{ textAlign: 'center', color: '#FF7675' }}>{error}</p>}
 
             <div className={styles.pickedSection}>
@@ -115,28 +204,24 @@ function MasterView() {
                         <EventCard
                             key={event.id}
                             event={event}
-                            onFavoriteToggle={loadEvents}
+                            onFavoriteToggle={loadInitial}
                         />
                     ))}
                 </div>
             </div>
 
-            {totalPages > 1 && (
-                <div className={styles.pagination}>
-                    <div className={styles.paginationBox}>
-                        <button className={styles.pageBtn} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>{'<'}</button>
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                                key={page}
-                                className={currentPage === page ? styles.pageBtnActive : styles.pageBtn}
-                                onClick={() => setCurrentPage(page)}
-                            >
-                                {page}
-                            </button>
-                        ))}
-                        <button className={styles.pageBtn} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>{'>'}</button>
-                    </div>
-                </div>
+            {/* ─── Loading indicator ─── */}
+            {loading && (
+                <p style={{ textAlign: 'center', color: '#6C5CE7', padding: '20px' }}>
+                    Loading more events...
+                </p>
+            )}
+
+            {/* ─── End of list ─── */}
+            {!hasMore && events.length > 0 && (
+                <p style={{ textAlign: 'center', color: '#9988BB', padding: '20px' }}>
+                    You've seen all events!
+                </p>
             )}
         </div>
     )
