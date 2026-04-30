@@ -1,7 +1,7 @@
 const { generateFakeEvent } = require('../faker/eventGenerator')
 const { broadcast } = require('../websocket/wsServer')
 const repository = require('../repository/repository')
-const { Event } = require('../model/Event')
+const { Event } = require('../model/associations.js')
 
 let fakerInterval = null
 const INTERVAL_MS = 3000
@@ -9,10 +9,9 @@ const INTERVAL_MS = 3000
 function startFakerLoop() {
     if (fakerInterval) return { message: 'Faker loop already running' }
 
-    fakerInterval = setInterval(() => {
+    fakerInterval = setInterval(async () => {
         const fakeData = generateFakeEvent()
-        const newEvent = new Event(fakeData)
-        repository.events.push(newEvent)
+        const newEvent = await repository.addEvent(fakeData)
 
         console.log(`Generated fake event: ${newEvent.title}`)
 

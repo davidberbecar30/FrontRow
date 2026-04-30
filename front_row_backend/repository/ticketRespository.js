@@ -1,55 +1,102 @@
-const { Ticket } = require('../model/Ticket')
+const { de } = require("@faker-js/faker")
+const{Ticket} =require("../model/associations.js")
+const {Op,fn,col}=require("sequelize")
 
 class TicketRepository {
-    tickets = [
-        new Ticket({ eventId: 1, seat: 'A1', section: 'VIP', status: 'available', price: 200 }),
-        new Ticket({ eventId: 1, seat: 'A2', section: 'VIP', status: 'sold', price: 200 }),
-        new Ticket({ eventId: 1, seat: 'B1', section: 'Standard', status: 'available', price: 135 }),
-        new Ticket({ eventId: 2, seat: 'A1', section: 'VIP', status: 'available', price: 150 }),
-        new Ticket({ eventId: 2, seat: 'B1', section: 'Standard', status: 'reserved', price: 89 }),
-        new Ticket({ eventId: 3, seat: 'C1', section: 'Standard', status: 'available', price: 38 }),
-    ]
 
-    getAllByEventId(eventId) {
-        return this.tickets.filter(t => t.eventId === Number(eventId))
+    constructor(){}
+
+    async getAllByEventId(eventId) {
+        return Ticket.findAll({
+            where:{eventId:Number(eventId)},
+            order:[["id","ASC"]]
+        })
     }
 
-    getById(id) {
-        return this.tickets.find(t => t.id === Number(id))
+    async getById(id) {
+        return Ticket.findByPk(id)
     }
 
-    add(ticketData) {
-        const ticket = new Ticket(ticketData)
-        this.tickets.push(ticket)
-        return ticket
+    async add(ticketData) {
+        return Ticket.create(ticketData)
     }
 
-    update(id, ticketData) {
-        const index = this.tickets.findIndex(t => t.id === Number(id))
-        if (index === -1) return null
-        this.tickets[index] = { ...this.tickets[index], ...ticketData }
-        return this.tickets[index]
+    async update(id, ticketData) {
+        const existingTicket=await Ticket.findByPk(id)
+        if(!existingTicket){
+            return null
+        }
+        await existingTicket.update(ticketData)
+        return existingTicket
     }
 
-    delete(id) {
-        const index = this.tickets.findIndex(t => t.id === Number(id))
-        if (index === -1) return null
-        const removed = this.tickets[index]
-        this.tickets.splice(index, 1)
-        return removed
+    async delete(id) {
+        const deletedTicket=Ticket.findByPk(id)
+        if(!deletedTicket) return null
+        deletedTicket.destroy()
+        return deletedTicket
     }
 
-    getStatsByEventId(eventId) {
-        const tickets = this.getAllByEventId(eventId)
-        const total = tickets.length
-        const available = tickets.filter(t => t.status === 'available').length
-        const sold = tickets.filter(t => t.status === 'sold').length
-        const reserved = tickets.filter(t => t.status === 'reserved').length
-        const revenue = tickets
-            .filter(t => t.status === 'sold')
-            .reduce((sum, t) => sum + (t.price || 0), 0)
+    async getStatsByEventId(eventId) {
+        const id = Number(eventId)
 
-        return { total, available, sold, reserved, revenue }
+        const [statusRows, revenueRow] = await Promise.all([
+            Ticket.findAll({
+                where: { eventId: id },
+                attributes: ['status', [fn('COUNT', col('id')), 'count']],
+                group: ['status'],
+                raw: true
+            }),
+            Ticket.findOne({
+                where: { eventId: id, status: 'sold' },
+                attributes: [[fn('SUM', col('price')), 'revenue']],
+                raw: true
+            })
+        ])
+
+        const counts = { available: 0, sold: 0, reserved: 0 }
+        let total = 0
+        statusRows.forEach(r => {
+            counts[r.status] = Number(r.count)
+            total += Number(r.count)
+        })
+
+        const revenue = Number(revenueRow?.revenue || 0)
+
+        return {
+            total,
+            available: counts.available,
+            sold:      counts.sold,
+            reserved:  counts.reserved,
+            revenue
+        }
+    }
+
+    async getGlobalStats() {
+        const [totalTickets, totalSold, revenueRow, popularRow] = await Promise.all([
+            Ticket.count(),
+            Ticket.count({ where: { status: 'sold' } }),
+            Ticket.findOne({
+                where: { status: 'sold' },
+                attributes: [[fn('SUM', col('price')), 'revenue']],
+                raw: true
+            }),
+            Ticket.findOne({
+                where: { status: 'sold' },
+                attributes: ['eventId', [fn('COUNT', col('id')), 'count']],
+                group: ['eventId'],
+                order: [[fn('COUNT', col('id')), 'DESC']],
+                limit: 1,
+                raw: true
+            })
+        ])
+
+        return {
+            totalTickets,
+            totalSold,
+            totalRevenue: Number(revenueRow?.revenue || 0),
+            mostPopularEventId: popularRow?.eventId ?? null
+        }
     }
 }
 
