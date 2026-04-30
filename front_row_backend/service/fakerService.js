@@ -1,7 +1,7 @@
 const { generateFakeEvent } = require('../faker/eventGenerator')
 const { broadcast } = require('../websocket/wsServer')
 const repository = require('../repository/repository')
-const { Event } = require('../model/associations.js')
+
 
 let fakerInterval = null
 const INTERVAL_MS = 3000

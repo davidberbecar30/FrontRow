@@ -18,7 +18,7 @@ async function start() {
         await sequelize.authenticate()
         console.log('4. authenticated')
 
-        await sequelize.sync({ force: true })
+        await sequelize.sync({ force: false })
         console.log('5. synced')
 
         server.listen(PORT, () => {
