@@ -8,14 +8,17 @@ import bidIcon from '../assets/bid_landscape_24dp_E3E3E3_FILL0_wght400_GRAD0_ops
 import OfflineIndicator from "./OfflineIndicator.jsx";
 
 function Header() {
+
+    const SERVER_IP = '192.168.1.128';
+
     const navigate = useNavigate()
 
     async function startFaker() {
-        await fetch('http://localhost:3000/faker/start', { method: 'POST' })
+        await fetch(`http://${SERVER_IP}:3000/faker/start`, { method: 'POST' })
     }
 
     async function stopFaker() {
-        await fetch('http://localhost:3000/faker/stop', { method: 'POST' })
+        await fetch(`http://${SERVER_IP}:3000/faker/stop`, { method: 'POST' })
     }
 
     return (

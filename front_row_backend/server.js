@@ -8,6 +8,7 @@ console.log('2. associations loaded')
 const { initWebSocket } = require('./websocket/wsServer')
 
 const PORT = 3000
+const HOST='0.0.0.0'
 
 const server = http.createServer(app)
 initWebSocket(server)
@@ -21,7 +22,7 @@ async function start() {
         await sequelize.sync({ force: false })
         console.log('5. synced')
 
-        server.listen(PORT, () => {
+        server.listen(PORT,HOST, () => {
             console.log(`Server running on http://localhost:${PORT}`)
         })
     } catch (err) {

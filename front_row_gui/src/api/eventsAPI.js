@@ -12,7 +12,12 @@ import {
     clearPendingActions
 } from './offlineManager.js'
 
-const BASE_URL = 'http://localhost:3000/events'
+// const BASE_URL = 'http://localhost:3000/events'
+// const TICKETS_URL = 'http://localhost:3000'
+
+const SERVER_IP = '192.168.1.128';
+const BASE_URL = `http://${SERVER_IP}:3000/events`;
+const TICKETS_URL = `http://${SERVER_IP}:3000`;
 
 export async function syncWithServer() {
     const pending = getPendingActions()
@@ -266,7 +271,6 @@ export async function getStatistics() {
     }
 }
 
-const TICKETS_URL = 'http://localhost:3000'
 
 export async function getTicketsByEventId(eventId) {
     const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets`)
