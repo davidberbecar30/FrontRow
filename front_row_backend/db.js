@@ -1,4 +1,6 @@
-require('dotenv').config()
+require('dotenv').config({
+    path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env'
+})
 const {Sequelize}= require('sequelize')
 
 
@@ -11,7 +13,7 @@ const sequelize= new Sequelize(
         host:process.env.DB_HOST,
         port:process.env.DB_PORT,
         dialect: "postgres",
-        logging:console.log()
+        logging: process.env.NODE_ENV === 'test' ? false : console.log()
     }
 )
 

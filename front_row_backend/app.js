@@ -2,7 +2,6 @@ const express = require('express')
 const cors = require('cors')
 const { createHandler } = require('graphql-http/lib/use/express')
 const routes = require('./router/router')
-const fakerRoutes = require('./router/fakerRoutes')
 const schema = require('./graphql/schema')
 const resolvers = require('./graphql/resolvers')
 const ticketRoutes = require('./router/ticketRoutes')
@@ -19,7 +18,11 @@ app.use(express.json())
 app.use('/images', express.static('public/images'))
 
 app.use('/events', routes)
-app.use('/faker', fakerRoutes)
+
+if (process.env.NODE_ENV !== 'test') {
+    const fakerRoutes = require('./router/fakerRoutes')
+    app.use('/faker', fakerRoutes)
+}
 
 app.use('/events/:eventId/tickets', ticketRoutes)
 

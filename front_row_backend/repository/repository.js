@@ -21,8 +21,9 @@ class EventRepository{
             ...withDates,
             limit,
             offset: (page-1)*limit,
-            order:[['id','ASC']]    
-    })
+            order:[['id','ASC']],
+            distinct: true 
+        })
     }
 
     async getEventById(id){

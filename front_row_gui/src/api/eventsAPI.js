@@ -15,7 +15,7 @@ import {
 // const BASE_URL = 'http://localhost:3000/events'
 // const TICKETS_URL = 'http://localhost:3000'
 
-const SERVER_IP = '192.168.1.128';
+const SERVER_IP = '192.168.1.7';
 const BASE_URL = `http://${SERVER_IP}:3000/events`;
 const TICKETS_URL = `http://${SERVER_IP}:3000`;
 

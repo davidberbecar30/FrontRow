@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 // const WS_URL='ws://localhost:3000'
-const SERVER_IP = '192.168.1.128'; // Use the IP from your Server PC
+const SERVER_IP = '192.168.1.7'; // Use the IP from your Server PC
 const WS_URL=`ws://${SERVER_IP}:3000`;
 
 export function useWebSocket(onMessage) {

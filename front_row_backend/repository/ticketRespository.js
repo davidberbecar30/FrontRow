@@ -1,6 +1,5 @@
-const { de } = require("@faker-js/faker")
-const{Ticket} =require("../model/associations.js")
-const {Op,fn,col}=require("sequelize")
+const { Ticket } = require('../model/associations.js')
+const { Op, fn, col } = require('sequelize')
 
 class TicketRepository {
 
@@ -31,9 +30,9 @@ class TicketRepository {
     }
 
     async delete(id) {
-        const deletedTicket=Ticket.findByPk(id)
-        if(!deletedTicket) return null
-        deletedTicket.destroy()
+        const deletedTicket = await Ticket.findByPk(id)
+        if (!deletedTicket) return null
+        await deletedTicket.destroy()
         return deletedTicket
     }
 

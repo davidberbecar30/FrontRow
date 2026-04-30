@@ -9,7 +9,7 @@ import OfflineIndicator from "./OfflineIndicator.jsx";
 
 function Header() {
 
-    const SERVER_IP = '192.168.1.128';
+    const SERVER_IP = '192.168.1.7';
 
     const navigate = useNavigate()
 
