@@ -3,6 +3,7 @@ const app = require('./app')
 console.log('1. requires loaded')
 
 const { sequelize } = require('./model/associations.js')
+const { seedAuth } = require('./seed/authSeed')
 console.log('2. associations loaded')
 
 const { initWebSocket } = require('./websocket/wsServer')
@@ -21,6 +22,9 @@ async function start() {
 
         await sequelize.sync({ force: false })
         console.log('5. synced')
+
+        await seedAuth()
+        console.log('6. auth seeded')
 
         server.listen(PORT,HOST, () => {
             console.log(`Server running on http://localhost:${PORT}`)

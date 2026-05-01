@@ -1,5 +1,5 @@
 const { Ticket } = require('../model/associations.js')
-const { Op, fn, col } = require('sequelize')
+const { fn, col } = require('sequelize')
 
 class TicketRepository {
 

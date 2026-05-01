@@ -5,6 +5,7 @@ const routes = require('./router/router')
 const schema = require('./graphql/schema')
 const resolvers = require('./graphql/resolvers')
 const ticketRoutes = require('./router/ticketRoutes')
+const authRoutes = require('./router/authRoutes')
 
 
 const app = express()
@@ -18,6 +19,7 @@ app.use(express.json())
 app.use('/images', express.static('public/images'))
 
 app.use('/events', routes)
+app.use('/auth', authRoutes)
 
 if (process.env.NODE_ENV !== 'test') {
     const fakerRoutes = require('./router/fakerRoutes')
@@ -39,7 +41,8 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     console.error(err.stack)
-    res.status(500).json({ error: 'Something went wrong on the server' })
+    const status = err.status || 500
+    res.status(status).json({ error: err.message || 'Something went wrong on the server' })
 })
 
 module.exports = app
