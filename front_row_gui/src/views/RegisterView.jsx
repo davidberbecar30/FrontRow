@@ -2,6 +2,8 @@ import styles from './RegisterView.module.css'
 import logo from '../assets/logo.svg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { register } from '../api/authAPI'
+import { setCurrentUser } from '../auth/currentUser'
 
 function RegisterView() {
     const navigate = useNavigate()
@@ -13,21 +15,41 @@ function RegisterView() {
         dob: '',
     })
     const [errors, setErrors] = useState({})
+    const [serverError, setServerError] = useState('')
+    const [loading, setLoading] = useState(false)
 
-    function handleSubmit() {
-        const e={}
-        if(!form.firstName.trim()) e.firstName = 'First name is required'
-        if(!form.lastName.trim()) e.lastName = 'Last name is required'
+    async function handleSubmit() {
+        setServerError('')
+        const e = {}
+        if (!form.firstName.trim()) e.firstName = 'First name is required'
+        if (!form.lastName.trim()) e.lastName = 'Last name is required'
         if (!form.email.trim()) e.email = 'Email is required'
         else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter a valid email'
         if (!form.password.trim()) e.password = 'Password is required'
         else if (form.password.length < 6) e.password = 'Password must be at least 6 characters'
-        if(form.dob.trim() === '') e.dob = 'Date of birth is required'
-        if(Object.keys(e).length>0){
+        if (form.dob.trim() === '') e.dob = 'Date of birth is required'
+        if (Object.keys(e).length > 0) {
             setErrors(e)
             return
         }
-        navigate('/events')
+        setErrors({})
+        setLoading(true)
+        try {
+            // Backend expects `dateOfBirth`, not `dob`
+            const user = await register({
+                firstName: form.firstName,
+                lastName:  form.lastName,
+                email:     form.email,
+                password:  form.password,
+                dateOfBirth: form.dob
+            })
+            setCurrentUser(user)
+            navigate('/events')
+        } catch (err) {
+            setServerError(err.message || 'Registration failed')
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -101,8 +123,18 @@ function RegisterView() {
                     {errors.dob && <span className={styles.error}>{errors.dob}</span>}
                 </div>
 
-                <button className={styles.registerBtn} onClick={handleSubmit}>
-                    Register
+                {serverError && (
+                    <div className={styles.error} style={{ marginBottom: '1rem' }}>
+                        {serverError}
+                    </div>
+                )}
+
+                <button
+                    className={styles.registerBtn}
+                    onClick={handleSubmit}
+                    disabled={loading}
+                >
+                    {loading ? 'Registering...' : 'Register'}
                 </button>
 
                 <p className={styles.loginText}>
