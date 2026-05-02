@@ -4,6 +4,7 @@ console.log('1. requires loaded')
 
 const { sequelize } = require('./model/associations.js')
 const { seedAuth } = require('./seed/authSeed')
+const { connectMongo } = require('./mongoDb')
 console.log('2. associations loaded')
 
 const { initWebSocket } = require('./websocket/wsServer')
@@ -25,6 +26,9 @@ async function start() {
 
         await seedAuth()
         console.log('6. auth seeded')
+
+        await connectMongo()
+        console.log('7. mongo connected')
 
         server.listen(PORT,HOST, () => {
             console.log(`Server running on http://localhost:${PORT}`)

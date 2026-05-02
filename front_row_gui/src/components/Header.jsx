@@ -73,6 +73,7 @@ function Header() {
 
                     {user ? (
                         <>
+                            <button onClick={() => navigate('/chat')}>💬 Chat</button>
                             <span style={{ color: 'white', marginLeft: '1rem' }}>
                                 Hi, {user.firstName} ({user.role?.name})
                             </span>

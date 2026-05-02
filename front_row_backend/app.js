@@ -6,6 +6,7 @@ const schema = require('./graphql/schema')
 const resolvers = require('./graphql/resolvers')
 const ticketRoutes = require('./router/ticketRoutes')
 const authRoutes = require('./router/authRoutes')
+const chatRoutes = require('./router/chatRoutes')
 
 
 const app = express()
@@ -20,6 +21,7 @@ app.use('/images', express.static('public/images'))
 
 app.use('/events', routes)
 app.use('/auth', authRoutes)
+app.use('/chat', chatRoutes)
 
 if (process.env.NODE_ENV !== 'test') {
     const fakerRoutes = require('./router/fakerRoutes')
