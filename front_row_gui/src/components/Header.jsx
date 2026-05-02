@@ -6,6 +6,8 @@ import favoriteIcon from '../assets/favorite_24dp_E3E3E3_FILL0_wght400_GRAD0_ops
 import menuIcon from '../assets/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
 import addIcon from '../assets/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
 import bidIcon from '../assets/bid_landscape_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
+import chatIcon from '../assets/chat_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
+import logoutIcon from '../assets/logout_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
 import OfflineIndicator from './OfflineIndicator.jsx'
 import { getCurrentUser, clearCurrentUser, hasPermission, isAdmin } from '../auth/currentUser'
 
@@ -73,11 +75,15 @@ function Header() {
 
                     {user ? (
                         <>
-                            <button onClick={() => navigate('/chat')}>💬 Chat</button>
+                            <button className={styles.iconBtn} onClick={() => navigate('/chat')}>
+                                <img src={chatIcon} alt="Chat" className={styles.icon} />
+                            </button>
                             <span style={{ color: 'white', marginLeft: '1rem' }}>
                                 Hi, {user.firstName} ({user.role?.name})
                             </span>
-                            <button onClick={handleLogout}>Logout</button>
+                            <button className={styles.iconBtn} onClick={handleLogout}>
+                                <img src={logoutIcon} alt="Logout" className={styles.icon} />
+                            </button>
                         </>
                     ) : (
                         <>
