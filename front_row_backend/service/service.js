@@ -1,83 +1,60 @@
-const repository = require("../repository/repository")
+const repository = require('../repository/repository')
 
-class EventService{
-    
-    getEvents({ page = 1, limit = 4, category, search } = {}) {
-    let events = repository.getAllEvents()
+class EventService {
 
-    if (category) {
-        events = events.filter(e => e.category.toLowerCase() === category.toLowerCase())
-    }
-
-    if (search) {
-        events = events.filter(e => e.title.toLowerCase().includes(search.toLowerCase()))
-    }
-
-    const pageNum = Number(page) || 1
+    async getEvents({ page = 1, limit = 4, category, search } = {}) {
+    const pageNum  = Number(page) || 1
     const limitNum = Number(limit) || 4
 
-    const total = events.length
-    const totalPages = Math.ceil(total / limitNum)
-    const start = (pageNum - 1) * limitNum          
-    const end = start + limitNum 
-
-    const paginated = events.slice(start, end)
+    const { rows, count } = await repository.getAllEvents({
+        page: pageNum,
+        limit: limitNum,
+        category,
+        search
+    })
 
     return {
-        data: paginated,
+        data: rows,
         pagination: {
-            total,
-            totalPages,
-            currentPage: pageNum,   
-            limit: limitNum         
+            total: count,
+            totalPages: Math.ceil(count / limitNum),
+            currentPage: pageNum,
+            limit: limitNum
         }
     }
 }
 
-    addEvent(eventDetails){
+    async addEvent(eventDetails) {
         return repository.addEvent(eventDetails)
     }
 
-    deleteEvent(id){
+    async deleteEvent(id) {
         return repository.deleteEvent(id)
     }
 
-    updateEvent(id,eventDetails){
-        return repository.updateEvent(id,eventDetails)
+    async updateEvent(id, eventDetails) {
+        return repository.updateEvent(id, eventDetails)
     }
 
-    getEventById(id){
+    async getEventById(id) {
         return repository.getEventById(id)
     }
 
-    toggleFavorite(id){
+    async toggleFavorite(id) {
         return repository.toggleFavorite(id)
     }
 
-    getStatistics(){
-        const events=repository.getAllEvents()
+    async getStatistics() {
+        const [totalEvents, categoryBreakdown, trending, ticketsAvailability] =
+            await Promise.all([
+                repository.countEvents(),
+                repository.getCategoryBreakdown(),
+                repository.getTrending(6),
+                repository.getTicketsAvailability()
+            ])
 
-        const categoryEventsMap={}
-        events.forEach(e=>
-            categoryEventsMap[e.category]=(categoryEventsMap[e.category] || 0)+1
-        )
-
-        const trending=events.sort((a,b)=>b.price-a.price).slice(0,6)
-        const ticketsAvailability = events.map(e => ({
-            id: e.id,
-            title: e.title,
-            availableTickets: e.availableTickets
-        }))
-
-        return {
-            totalEvents: events.length,
-            categoryBreakdown: categoryEventsMap,
-            trending,
-            ticketsAvailability
-        }
+        return { totalEvents, categoryBreakdown, trending, ticketsAvailability }
     }
 }
 
-module.exports=new EventService()
-    
-
+module.exports = new EventService()

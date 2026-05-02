@@ -8,6 +8,8 @@ import FavoritesView from "./views/FavoritesView.jsx";
 import LoginView from "./views/LoginView.jsx";
 import RegisterView from "./views/RegisterView.jsx";
 import StatisticsView from "./views/StatisticsView.jsx";
+import ChatView from "./views/ChatView.jsx";
+import AdminObservationsView from "./views/AdminObservationsView.jsx";
 import OfflineIndicator from "./components/OfflineIndicator.jsx";
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
             <Route path="/login" element={<LoginView/>}/>
             <Route path="/register" element={<RegisterView/>}/>
             <Route path="/statistics" element={<StatisticsView/>}/>
+            <Route path="/chat" element={<ChatView/>}/>
+            <Route path="/admin/observations" element={<AdminObservationsView/>}/>
         </Routes>
     )
 }

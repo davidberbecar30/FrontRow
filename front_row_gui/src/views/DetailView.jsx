@@ -12,6 +12,7 @@ import {
 } from '../api/eventsAPI.js'
 import Header from '../components/Header.jsx'
 import styles from './DetailView.module.css'
+import { hasPermission, isAdmin } from '../auth/currentUser'
 
 function DetailView() {
     const { id } = useParams()
@@ -159,17 +160,23 @@ function DetailView() {
                         </button>
                     </div>
                     <p className={styles.description}>{event.description}</p>
-                    <div className={styles.adminActions}>
-                        <button className={styles.deleteBtn} onClick={handleDelete}>
-                            [Delete]
-                        </button>
-                        <button
-                            className={styles.updateBtn}
-                            onClick={() => navigate(`/events/${event.id}/edit`)}
-                        >
-                            [Update]
-                        </button>
-                    </div>
+                    {(hasPermission('events.update') || hasPermission('events.delete')) && (
+                        <div className={styles.adminActions}>
+                            {hasPermission('events.delete') && (
+                                <button className={styles.deleteBtn} onClick={handleDelete}>
+                                    [Delete]
+                                </button>
+                            )}
+                            {hasPermission('events.update') && (
+                                <button
+                                    className={styles.updateBtn}
+                                    onClick={() => navigate(`/events/${event.id}/edit`)}
+                                >
+                                    [Update]
+                                </button>
+                            )}
+                        </div>
+                    )}
                     <div className={styles.datesFrame}>
                         {event.dates.map((dateObj, index) => (
                             <div key={index} className={styles.eventDetailRow}>
@@ -205,7 +212,8 @@ function DetailView() {
                 </div>
             </div>
 
-            {/* ─── Tickets Section ─── */}
+            {/* ─── Tickets Section (admin-only management UI) ─── */}
+            {isAdmin() && (
             <div className={styles.ticketsSection}>
                 <div className={styles.ticketsHeader}>
                     <h2 className={styles.ticketsTitle}>Tickets</h2>
@@ -326,6 +334,7 @@ function DetailView() {
                     )}
                 </div>
             </div>
+            )}
         </div>
     )
 }

@@ -2,12 +2,16 @@ import styles from './LoginView.module.css'
 import logo from '../assets/logo.svg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { login } from '../api/authAPI'
+import { setCurrentUser } from '../auth/currentUser'
 
 function LoginView() {
     const navigate = useNavigate()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [errors, setErrors] = useState({})
+    const [serverError, setServerError] = useState('')
+    const [loading, setLoading] = useState(false)
 
     function validate() {
         const e = {}
@@ -18,13 +22,24 @@ function LoginView() {
         return e
     }
 
-    function handleLogin() {
+    async function handleLogin() {
+        setServerError('')
         const e = validate()
         if (Object.keys(e).length > 0) {
             setErrors(e)
             return
         }
-        navigate('/events')
+        setErrors({})
+        setLoading(true)
+        try {
+            const user = await login(email, password)
+            setCurrentUser(user)
+            navigate('/events')
+        } catch (err) {
+            setServerError(err.message || 'Login failed')
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -62,8 +77,18 @@ function LoginView() {
                     {errors.password && <span className={styles.error}>{errors.password}</span>}
                 </div>
 
-                <button className={styles.loginBtn} onClick={handleLogin}>
-                    Log In
+                {serverError && (
+                    <div className={styles.error} style={{ marginBottom: '1rem' }}>
+                        {serverError}
+                    </div>
+                )}
+
+                <button
+                    className={styles.loginBtn}
+                    onClick={handleLogin}
+                    disabled={loading}
+                >
+                    {loading ? 'Logging in...' : 'Log In'}
                 </button>
 
                 <p className={styles.signupText}>
