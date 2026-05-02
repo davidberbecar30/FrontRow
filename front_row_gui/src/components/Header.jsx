@@ -70,6 +70,7 @@ function Header() {
                         <>
                             <button onClick={startFaker}>▶ Start Faker</button>
                             <button onClick={stopFaker}>⏹ Stop Faker</button>
+                            <button onClick={() => navigate('/admin/observations')}>👁 Observations</button>
                         </>
                     )}
 

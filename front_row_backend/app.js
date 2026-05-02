@@ -7,6 +7,9 @@ const resolvers = require('./graphql/resolvers')
 const ticketRoutes = require('./router/ticketRoutes')
 const authRoutes = require('./router/authRoutes')
 const chatRoutes = require('./router/chatRoutes')
+const adminRoutes = require('./router/adminRoutes')
+const extractUser = require('./middleware/extractUser')
+const logAction = require('./middleware/logAction')
 
 
 const app = express()
@@ -19,9 +22,14 @@ app.use(cors({
 app.use(express.json())
 app.use('/images', express.static('public/images'))
 
+app.use(extractUser)
+
+app.use(logAction)
+
 app.use('/events', routes)
 app.use('/auth', authRoutes)
 app.use('/chat', chatRoutes)
+app.use('/admin', adminRoutes)
 
 if (process.env.NODE_ENV !== 'test') {
     const fakerRoutes = require('./router/fakerRoutes')

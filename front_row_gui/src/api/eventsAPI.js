@@ -1,3 +1,4 @@
+import { apiFetch } from './apiFetch'
 import {
     isOnline,
     getLocalEventspaginated,
@@ -27,7 +28,7 @@ export async function syncWithServer() {
 
     for (const action of pending) {
         try {
-            await fetch(action.url, action.options)
+            await apiFetch(action.url, action.options)
         } catch (err) {
             console.error('Sync failed for action:', action, err)
         }
@@ -36,7 +37,7 @@ export async function syncWithServer() {
     clearPendingActions()
 
     // refresh local cache from server
-    const response = await fetch(`${BASE_URL}?limit=100`)
+    const response = await apiFetch(`${BASE_URL}?limit=100`)
     const data = await response.json()
     saveLocalEvents(data.data)
 
@@ -59,11 +60,11 @@ export async function getEvents({ page = 1, limit = 4, search = '', category = '
         if (search) params.append('search', search)
         if (category) params.append('category', category)
 
-        const response = await fetch(`${BASE_URL}?${params.toString()}`)
+        const response = await apiFetch(`${BASE_URL}?${params.toString()}`)
         if (!response.ok) throw new Error('Failed to fetch events')
         const data = await response.json()
 
-        const allResponse = await fetch(`${BASE_URL}?limit=100`)
+        const allResponse = await apiFetch(`${BASE_URL}?limit=100`)
         const allData = await allResponse.json()
         saveLocalEvents(allData.data)
 
@@ -81,7 +82,7 @@ export async function getEventById(id) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${id}`)
+        const response = await apiFetch(`${BASE_URL}/${id}`)
         if (!response.ok) throw new Error(`Failed to fetch event ${id}`)
         return await response.json()
     } catch (err) {
@@ -107,7 +108,7 @@ export async function addEvent(eventDetails) {
     }
 
     try {
-        const response = await fetch(BASE_URL, {
+        const response = await apiFetch(BASE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(eventDetails)
@@ -145,7 +146,7 @@ export async function updateEvent(id, eventDetails) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${id}`, {
+        const response = await apiFetch(`${BASE_URL}/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(eventDetails)
@@ -178,7 +179,7 @@ export async function deleteEvent(id) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${id}`, {
+        const response = await apiFetch(`${BASE_URL}/${id}`, {
             method: 'DELETE'
         })
         if (!response.ok) throw new Error('Failed to delete event')
@@ -205,7 +206,7 @@ export async function toggleFavorite(id) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${id}/favorite`, {
+        const response = await apiFetch(`${BASE_URL}/${id}/favorite`, {
             method: 'PATCH'
         })
         if (!response.ok) throw new Error('Failed to toggle favorite')
@@ -245,7 +246,7 @@ export async function getStatistics() {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/statistics`)
+        const response = await apiFetch(`${BASE_URL}/statistics`)
         if (!response.ok) throw new Error('Failed to fetch statistics')
         return await response.json()
     } catch (err) {
@@ -273,19 +274,19 @@ export async function getStatistics() {
 
 
 export async function getTicketsByEventId(eventId) {
-    const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets`)
+    const response = await apiFetch(`${TICKETS_URL}/events/${eventId}/tickets`)
     if (!response.ok) throw new Error('Failed to fetch tickets')
     return await response.json()
 }
 
 export async function getTicketStatsByEventId(eventId) {
-    const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets/stats`)
+    const response = await apiFetch(`${TICKETS_URL}/events/${eventId}/tickets/stats`)
     if (!response.ok) throw new Error('Failed to fetch ticket stats')
     return await response.json()
 }
 
 export async function addTicket(eventId, ticketData) {
-    const response = await fetch(`${TICKETS_URL}/events/${eventId}/tickets`, {
+    const response = await apiFetch(`${TICKETS_URL}/events/${eventId}/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ticketData)
@@ -295,7 +296,7 @@ export async function addTicket(eventId, ticketData) {
 }
 
 export async function updateTicket(id, ticketData) {
-    const response = await fetch(`${TICKETS_URL}/tickets/${id}`, {
+    const response = await apiFetch(`${TICKETS_URL}/tickets/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ticketData)
@@ -305,7 +306,7 @@ export async function updateTicket(id, ticketData) {
 }
 
 export async function deleteTicket(id) {
-    const response = await fetch(`${TICKETS_URL}/tickets/${id}`, {
+    const response = await apiFetch(`${TICKETS_URL}/tickets/${id}`, {
         method: 'DELETE'
     })
     if (!response.ok) throw new Error('Failed to delete ticket')
@@ -313,7 +314,7 @@ export async function deleteTicket(id) {
 }
 
 export async function getGlobalTicketStats() {
-    const response = await fetch(`${TICKETS_URL}/tickets/global-stats`)
+    const response = await apiFetch(`${TICKETS_URL}/tickets/global-stats`)
     if (!response.ok) throw new Error('Failed to fetch global stats')
     return await response.json()
 }
