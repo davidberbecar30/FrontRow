@@ -1,16 +1,27 @@
 const express = require('express')
 const router = express.Router({ mergeParams: true })
 const ticketController = require('../controller/ticketController')
+const { requireAuth } = require('../middleware/authenticate')
+const { requireRole } = require('../middleware/authorize')
 
-// routes under /events/:eventId/tickets
-router.get('/', ticketController.getTicketsByEventId)
-router.post('/', ticketController.addTicket)
-router.get('/stats', ticketController.getStatsByEventId)
+// Public reads
+router.get('/',               ticketController.getTicketsByEventId)
+router.get('/stats',          ticketController.getStatsByEventId)
+router.get('/global-stats',   ticketController.getGlobalStats)
+router.get('/:id',            ticketController.getTicketById)
 
-// routes under /tickets
-router.get('/global-stats', ticketController.getGlobalStats)
-router.get('/:id', ticketController.getTicketById)
-router.put('/:id', ticketController.updateTicket)
-router.delete('/:id', ticketController.deleteTicket)
+// Admin-only writes
+router.post('/',
+    requireAuth, requireRole('admin'),
+    ticketController.addTicket
+)
+router.put('/:id',
+    requireAuth, requireRole('admin'),
+    ticketController.updateTicket
+)
+router.delete('/:id',
+    requireAuth, requireRole('admin'),
+    ticketController.deleteTicket
+)
 
 module.exports = router

@@ -13,8 +13,6 @@ import { getCurrentUser, clearCurrentUser, hasPermission, isAdmin } from '../aut
 
 function Header() {
 
-    const SERVER_IP = '192.168.1.7'
-
     const navigate = useNavigate()
     const [user, setUser] = useState(getCurrentUser())
 
@@ -25,11 +23,11 @@ function Header() {
     }, [])
 
     async function startFaker() {
-        await fetch(`http://${SERVER_IP}:3000/faker/start`, { method: 'POST' })
+        await fetch('/faker/start', { method: 'POST' })
     }
 
     async function stopFaker() {
-        await fetch(`http://${SERVER_IP}:3000/faker/stop`, { method: 'POST' })
+        await fetch('/faker/stop', { method: 'POST' })
     }
 
     function handleLogout() {

@@ -31,6 +31,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Ignore self-signed certificate errors (backend uses dev certs) */
+    ignoreHTTPSErrors: true,
   },
 
   /* Configure projects for major browsers */
@@ -75,13 +78,16 @@ export default defineConfig({
   // webServer: [
   //   {
   //     command: 'node server.js',
-  //     url: 'http://localhost:3000',
+  //     url: 'https://localhost:3000',
+  //     timeout: 60000,
   //     reuseExistingServer: true,
+  //     ignoreHTTPSErrors: true,
   //     cwd: '../front_row_backend',
   //   },
   //   {
   //     command: 'npm run dev',
   //     url: 'http://localhost:5173',
+  //     timeout: 30000,
   //     reuseExistingServer: true,
   //   }
   // ],

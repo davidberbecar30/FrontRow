@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { getMessages } from '../api/chatAPI'
 
-const SERVER_IP = '192.168.1.8'
-const WS_URL = `ws://${SERVER_IP}:3000`
+// Derive WebSocket URL from current page — works from any machine on LAN
+function wsUrl() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${protocol}//${window.location.host}/ws`
+}
 
 export function useChat(room = 'lobby') {
     const [messages, setMessages] = useState([])
@@ -25,7 +28,7 @@ export function useChat(room = 'lobby') {
     }, [room])
 
     useEffect(() => {
-        const ws = new WebSocket(WS_URL)
+        const ws = new WebSocket(wsUrl())
         wsRef.current = ws
 
         ws.onopen = () => setConnected(true)

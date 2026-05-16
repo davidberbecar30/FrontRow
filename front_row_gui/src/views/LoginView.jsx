@@ -1,12 +1,17 @@
 import styles from './LoginView.module.css'
 import logo from '../assets/logo.svg'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../api/authAPI'
-import { setCurrentUser } from '../auth/currentUser'
+import { setSession } from '../auth/currentUser'
 
 function LoginView() {
     const navigate = useNavigate()
+    const location = useLocation()
+
+    // If we were redirected here by ProtectedRoute, go back to that page after login
+    const from = location.state?.from?.pathname || '/events'
+
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [errors, setErrors] = useState({})
@@ -32,9 +37,9 @@ function LoginView() {
         setErrors({})
         setLoading(true)
         try {
-            const user = await login(email, password)
-            setCurrentUser(user)
-            navigate('/events')
+            const { user, token } = await login(email, password)
+            setSession({ user, token })
+            navigate(from, { replace: true })
         } catch (err) {
             setServerError(err.message || 'Login failed')
         } finally {

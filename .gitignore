@@ -17,6 +17,9 @@ front_row_backend/coverage/
 .env.development
 .env.production
 
+# ─── HTTPS certificates ─────────────────────────────────────
+front_row_backend/certs/
+
 # ─── Logs ────────────────────────────────────────────────
 *.log
 npm-debug.log*

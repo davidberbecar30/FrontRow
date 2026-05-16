@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react'
 
-// const WS_URL='ws://localhost:3000'
-const SERVER_IP = '192.168.1.8'; // Use the IP from your Server PC
-const WS_URL=`ws://${SERVER_IP}:3000`;
+// Derive WebSocket URL from current page — works from any machine on LAN
+function wsUrl() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${protocol}//${window.location.host}/ws`
+}
 
 export function useWebSocket(onMessage) {
     const ws = useRef(null)
 
     useEffect(() => {
-        ws.current = new WebSocket(WS_URL)
+        ws.current = new WebSocket(wsUrl())
 
         ws.current.onopen = () => {
             console.log('WebSocket connected')

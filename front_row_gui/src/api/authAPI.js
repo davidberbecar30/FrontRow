@@ -1,5 +1,8 @@
-const SERVER_IP = '192.168.1.8'
-const BASE_URL = `http://${SERVER_IP}:3000/auth`
+// Auth-specific API client. Uses plain fetch (no apiFetch) because:
+//   - Login/register run *before* we have a token to attach.
+//   - We don't want the global 401-redirect on a wrong-password login.
+
+const BASE_URL = '/auth'
 
 async function postJSON(url, body) {
     const response = await fetch(url, {
@@ -12,7 +15,7 @@ async function postJSON(url, body) {
         const message = data.error || data.message || `Request failed (${response.status})`
         throw new Error(message)
     }
-    return data
+    return data    // { user, token }
 }
 
 export async function register(userData) {

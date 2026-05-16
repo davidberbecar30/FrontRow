@@ -1,7 +1,10 @@
 const request = require('supertest')
 const app = require('../app')
 const { sequelize, Ticket, EventDate } = require('../model/associations')
-const { seedTestData } = require('./fixtures')
+const { seedTestData, seedRolesAndPermissions, seedTestUser } = require('./fixtures')
+
+let adminToken
+let userToken
 
 beforeAll(async () => {
     await sequelize.sync({ force: true })
@@ -9,6 +12,14 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     await sequelize.sync({ force: true })
+    await seedRolesAndPermissions()
+    await seedTestUser({ email: 'admin@x.com', password: 'pw', role: 'admin' })
+    await seedTestUser({ email: 'user@x.com',  password: 'pw' })
+    const adminRes = await request(app).post('/auth/login').send({ email: 'admin@x.com', password: 'pw' })
+    const userRes  = await request(app).post('/auth/login').send({ email: 'user@x.com',  password: 'pw' })
+    adminToken = adminRes.body.token
+    userToken  = userRes.body.token
+
     await seedTestData()
 })
 
@@ -16,8 +27,11 @@ afterAll(async () => {
     await sequelize.close()
 })
 
+// Helper: attach a Bearer header
+const bearer = t => ({ Authorization: `Bearer ${t}` })
+
 // ──────────────────────────────────────────────────────────────────────
-// GET /events
+// GET /events  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /events', () => {
@@ -79,7 +93,7 @@ describe('GET /events', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// GET /events/statistics
+// GET /events/statistics  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /events/statistics', () => {
@@ -122,7 +136,7 @@ describe('GET /events/statistics', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// GET /events/:id
+// GET /events/:id  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /events/:id', () => {
@@ -144,7 +158,7 @@ describe('GET /events/:id', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// POST /events
+// POST /events  (admin-only)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('POST /events', () => {
@@ -157,8 +171,8 @@ describe('POST /events', () => {
         dates: [{ date: '2027-01-01', location: 'Berlin, DE', venue: 'Mercedes-Benz Arena' }]
     }
 
-    it('creates a new event with dates', async () => {
-        const res = await request(app).post('/events').send(validBody)
+    it('creates a new event with dates (admin)', async () => {
+        const res = await request(app).post('/events').set(bearer(adminToken)).send(validBody)
         expect(res.status).toBe(201)
         expect(res.body).toHaveProperty('id')
         expect(res.body.title).toBe('New Concert')
@@ -168,26 +182,26 @@ describe('POST /events', () => {
 
     it('persists the event so it appears in the list', async () => {
         const before = await request(app).get('/events')
-        await request(app).post('/events').send(validBody)
+        await request(app).post('/events').set(bearer(adminToken)).send(validBody)
         const after = await request(app).get('/events')
         expect(after.body.pagination.total).toBe(before.body.pagination.total + 1)
     })
 
     it('rejects missing title with 400', async () => {
         const { title, ...rest } = validBody
-        const res = await request(app).post('/events').send(rest)
+        const res = await request(app).post('/events').set(bearer(adminToken)).send(rest)
         expect(res.status).toBe(400)
         expect(res.body).toHaveProperty('errors')
     })
 
     it('rejects negative price with 400', async () => {
-        const res = await request(app).post('/events').send({ ...validBody, price: -10 })
+        const res = await request(app).post('/events').set(bearer(adminToken)).send({ ...validBody, price: -10 })
         expect(res.status).toBe(400)
         expect(res.body).toHaveProperty('errors')
     })
 
     it('rejects bad date format with 400', async () => {
-        const res = await request(app).post('/events').send({
+        const res = await request(app).post('/events').set(bearer(adminToken)).send({
             ...validBody,
             dates: [{ date: 'not-a-date', location: 'X', venue: 'Y' }]
         })
@@ -196,14 +210,14 @@ describe('POST /events', () => {
     })
 
     it('rejects empty dates array with 400', async () => {
-        const res = await request(app).post('/events').send({ ...validBody, dates: [] })
+        const res = await request(app).post('/events').set(bearer(adminToken)).send({ ...validBody, dates: [] })
         expect(res.status).toBe(400)
         expect(res.body).toHaveProperty('errors')
     })
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// PUT /events/:id
+// PUT /events/:id  (admin-only)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('PUT /events/:id', () => {
@@ -216,10 +230,10 @@ describe('PUT /events/:id', () => {
         dates: [{ date: '2027-08-08', location: 'London, UK', venue: 'Wembley Stadium' }]
     }
 
-    it('updates an existing event and replaces dates', async () => {
+    it('updates an existing event and replaces dates (admin)', async () => {
         const list = await request(app).get('/events')
         const target = list.body.data.find(e => e.title === 'Drake Tour')
-        const res = await request(app).put(`/events/${target.id}`).send(validUpdate)
+        const res = await request(app).put(`/events/${target.id}`).set(bearer(adminToken)).send(validUpdate)
         expect(res.status).toBe(200)
         expect(res.body.title).toBe('Drake Tour Renamed')
         expect(res.body.dates).toHaveLength(1)
@@ -227,20 +241,20 @@ describe('PUT /events/:id', () => {
     })
 
     it('returns 404 for non-existent id', async () => {
-        const res = await request(app).put('/events/99999').send(validUpdate)
+        const res = await request(app).put('/events/99999').set(bearer(adminToken)).send(validUpdate)
         expect(res.status).toBe(404)
     })
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// DELETE /events/:id
+// DELETE /events/:id  (admin-only)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('DELETE /events/:id', () => {
-    it('deletes an existing event', async () => {
+    it('deletes an existing event (admin)', async () => {
         const list = await request(app).get('/events')
         const target = list.body.data[0]
-        const del = await request(app).delete(`/events/${target.id}`)
+        const del = await request(app).delete(`/events/${target.id}`).set(bearer(adminToken))
         expect(del.status).toBe(200)
 
         const after = await request(app).get(`/events/${target.id}`)
@@ -251,15 +265,13 @@ describe('DELETE /events/:id', () => {
         const list = await request(app).get('/events')
         const drake = list.body.data.find(e => e.title === 'Drake Tour')
 
-        // Confirm there are children before deletion
         const ticketsBefore = await Ticket.findAll({ where: { eventId: drake.id } })
         const datesBefore   = await EventDate.findAll({ where: { eventId: drake.id } })
         expect(ticketsBefore.length).toBeGreaterThan(0)
         expect(datesBefore.length).toBeGreaterThan(0)
 
-        await request(app).delete(`/events/${drake.id}`)
+        await request(app).delete(`/events/${drake.id}`).set(bearer(adminToken))
 
-        // Children should be gone
         const ticketsAfter = await Ticket.findAll({ where: { eventId: drake.id } })
         const datesAfter   = await EventDate.findAll({ where: { eventId: drake.id } })
         expect(ticketsAfter).toHaveLength(0)
@@ -267,13 +279,13 @@ describe('DELETE /events/:id', () => {
     })
 
     it('returns 404 for non-existent id', async () => {
-        const res = await request(app).delete('/events/99999')
+        const res = await request(app).delete('/events/99999').set(bearer(adminToken))
         expect(res.status).toBe(404)
     })
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// PATCH /events/:id/favorite
+// PATCH /events/:id/favorite  (any authenticated user)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('PATCH /events/:id/favorite', () => {
@@ -282,7 +294,7 @@ describe('PATCH /events/:id/favorite', () => {
         const drake = list.body.data.find(e => e.title === 'Drake Tour')
         expect(drake.favorited).toBe(true)
 
-        const res = await request(app).patch(`/events/${drake.id}/favorite`)
+        const res = await request(app).patch(`/events/${drake.id}/favorite`).set(bearer(userToken))
         expect(res.status).toBe(200)
         expect(res.body.favorited).toBe(false)
     })
@@ -292,14 +304,19 @@ describe('PATCH /events/:id/favorite', () => {
         const bruno = list.body.data.find(e => e.title === 'Bruno Mars Show')
         expect(bruno.favorited).toBe(false)
 
-        const res = await request(app).patch(`/events/${bruno.id}/favorite`)
+        const res = await request(app).patch(`/events/${bruno.id}/favorite`).set(bearer(userToken))
         expect(res.status).toBe(200)
         expect(res.body.favorited).toBe(true)
     })
 
     it('returns 404 for non-existent id', async () => {
-        const res = await request(app).patch('/events/99999/favorite')
+        const res = await request(app).patch('/events/99999/favorite').set(bearer(userToken))
         expect(res.status).toBe(404)
+    })
+
+    it('returns 401 without a token', async () => {
+        const res = await request(app).patch('/events/1/favorite')
+        expect(res.status).toBe(401)
     })
 })
 

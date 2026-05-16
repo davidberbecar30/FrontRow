@@ -1,5 +1,47 @@
-const { Event, EventDate, Ticket } = require('../model/associations')
+const bcrypt = require('bcrypt')
+const { Event, EventDate, Ticket, User, Role, Permission } = require('../model/associations')
 
+// ── Seeds the roles + permissions the auth flow depends on. ─────
+// Mirrors seed/authSeed.js but is fast and self-contained for tests.
+async function seedRolesAndPermissions() {
+    const PERMISSIONS = [
+        'events.create', 'events.update', 'events.delete',
+        'tickets.create', 'tickets.update', 'tickets.delete',
+        'users.manage', 'events.favorite'
+    ]
+    const ROLES = {
+        admin: PERMISSIONS,
+        user:  ['events.favorite']
+    }
+
+    const permRecords = await Permission.bulkCreate(PERMISSIONS.map(name => ({ name })))
+    const permByName = Object.fromEntries(permRecords.map(p => [p.name, p]))
+
+    const roleByName = {}
+    for (const [roleName, permNames] of Object.entries(ROLES)) {
+        const role = await Role.create({ name: roleName })
+        await role.setPermissions(permNames.map(n => permByName[n]))
+        roleByName[roleName] = role
+    }
+    return roleByName
+}
+
+// ── Creates a user with the given role and a known password ───────
+async function seedTestUser({ email, role = 'user', password = 'password123' }) {
+    const roleRow = await Role.findOne({ where: { name: role } })
+    if (!roleRow) throw new Error(`Role "${role}" missing — call seedRolesAndPermissions first`)
+
+    return User.create({
+        firstName:   role === 'admin' ? 'Admin' : 'Regular',
+        lastName:    'Tester',
+        email,
+        dateOfBirth: '1990-01-01',
+        password:    await bcrypt.hash(password, 4),  // low rounds → fast tests
+        roleId:      roleRow.id
+    })
+}
+
+// ── Domain seed (Events / Tickets / Dates). Auth must already be seeded. ─
 async function seedTestData() {
     const drake = await Event.create({
         title: 'Drake Tour',
@@ -54,4 +96,4 @@ async function seedTestData() {
     return { drake, bruno, lakers, blaine }
 }
 
-module.exports = { seedTestData }
+module.exports = { seedTestData, seedRolesAndPermissions, seedTestUser }

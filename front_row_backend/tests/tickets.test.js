@@ -1,7 +1,9 @@
 const request = require('supertest')
 const app = require('../app')
 const { sequelize } = require('../model/associations')
-const { seedTestData } = require('./fixtures')
+const { seedTestData, seedRolesAndPermissions, seedTestUser } = require('./fixtures')
+
+let adminToken
 
 beforeAll(async () => {
     await sequelize.sync({ force: true })
@@ -9,6 +11,11 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     await sequelize.sync({ force: true })
+    await seedRolesAndPermissions()
+    await seedTestUser({ email: 'admin@x.com', password: 'pw', role: 'admin' })
+    const adminRes = await request(app).post('/auth/login').send({ email: 'admin@x.com', password: 'pw' })
+    adminToken = adminRes.body.token
+
     await seedTestData()
 })
 
@@ -16,14 +23,15 @@ afterAll(async () => {
     await sequelize.close()
 })
 
-// Helpers — fetch IDs of seeded events dynamically since they're freshly assigned each test
+const bearer = t => ({ Authorization: `Bearer ${t}` })
+
 async function getEventIdByTitle(title) {
     const res = await request(app).get(`/events?search=${encodeURIComponent(title)}`)
     return res.body.data[0]?.id
 }
 
 // ──────────────────────────────────────────────────────────────────────
-// GET /events/:eventId/tickets
+// GET /events/:eventId/tickets  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /events/:eventId/tickets', () => {
@@ -50,15 +58,16 @@ describe('GET /events/:eventId/tickets', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// POST /events/:eventId/tickets
+// POST /events/:eventId/tickets  (admin)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('POST /events/:eventId/tickets', () => {
-    it('creates a ticket linked to the event', async () => {
+    it('creates a ticket linked to the event (admin)', async () => {
         const id = await getEventIdByTitle('Drake')
-        const res = await request(app).post(`/events/${id}/tickets`).send({
-            seat: 'Z9', section: 'VIP', status: 'available', price: 250
-        })
+        const res = await request(app)
+            .post(`/events/${id}/tickets`)
+            .set(bearer(adminToken))
+            .send({ seat: 'Z9', section: 'VIP', status: 'available', price: 250 })
         expect(res.status).toBe(201)
         expect(res.body).toHaveProperty('id')
         expect(res.body.eventId).toBe(id)
@@ -68,23 +77,25 @@ describe('POST /events/:eventId/tickets', () => {
 
     it('defaults status to "available" when omitted', async () => {
         const id = await getEventIdByTitle('Drake')
-        const res = await request(app).post(`/events/${id}/tickets`).send({
-            seat: 'Z10', section: 'VIP', price: 250
-        })
+        const res = await request(app)
+            .post(`/events/${id}/tickets`)
+            .set(bearer(adminToken))
+            .send({ seat: 'Z10', section: 'VIP', price: 250 })
         expect(res.status).toBe(201)
         expect(res.body.status).toBe('available')
     })
 
     it('returns 404 when the event does not exist', async () => {
-        const res = await request(app).post('/events/99999/tickets').send({
-            seat: 'Z9', section: 'VIP', status: 'available', price: 250
-        })
+        const res = await request(app)
+            .post('/events/99999/tickets')
+            .set(bearer(adminToken))
+            .send({ seat: 'Z9', section: 'VIP', status: 'available', price: 250 })
         expect(res.status).toBe(404)
     })
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// GET /tickets/:id
+// GET /tickets/:id  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /tickets/:id', () => {
@@ -105,37 +116,43 @@ describe('GET /tickets/:id', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// PUT /tickets/:id
+// PUT /tickets/:id  (admin)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('PUT /tickets/:id', () => {
-    it('updates a ticket', async () => {
+    it('updates a ticket (admin)', async () => {
         const eventId = await getEventIdByTitle('Drake')
         const list = await request(app).get(`/events/${eventId}/tickets`)
         const ticket = list.body.find(t => t.status === 'available')
 
-        const res = await request(app).put(`/tickets/${ticket.id}`).send({ status: 'sold' })
+        const res = await request(app)
+            .put(`/tickets/${ticket.id}`)
+            .set(bearer(adminToken))
+            .send({ status: 'sold' })
         expect(res.status).toBe(200)
         expect(res.body.status).toBe('sold')
     })
 
     it('returns 404 for non-existent ticket', async () => {
-        const res = await request(app).put('/tickets/99999').send({ status: 'sold' })
+        const res = await request(app)
+            .put('/tickets/99999')
+            .set(bearer(adminToken))
+            .send({ status: 'sold' })
         expect(res.status).toBe(404)
     })
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// DELETE /tickets/:id
+// DELETE /tickets/:id  (admin)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('DELETE /tickets/:id', () => {
-    it('deletes a ticket', async () => {
+    it('deletes a ticket (admin)', async () => {
         const eventId = await getEventIdByTitle('Drake')
         const list = await request(app).get(`/events/${eventId}/tickets`)
         const ticketId = list.body[0].id
 
-        const del = await request(app).delete(`/tickets/${ticketId}`)
+        const del = await request(app).delete(`/tickets/${ticketId}`).set(bearer(adminToken))
         expect(del.status).toBe(200)
 
         const after = await request(app).get(`/tickets/${ticketId}`)
@@ -143,13 +160,13 @@ describe('DELETE /tickets/:id', () => {
     })
 
     it('returns 404 for non-existent ticket', async () => {
-        const res = await request(app).delete('/tickets/99999')
+        const res = await request(app).delete('/tickets/99999').set(bearer(adminToken))
         expect(res.status).toBe(404)
     })
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// GET /events/:eventId/tickets/stats
+// GET /events/:eventId/tickets/stats  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /events/:eventId/tickets/stats', () => {
@@ -162,7 +179,7 @@ describe('GET /events/:eventId/tickets/stats', () => {
             available: 2,
             sold: 1,
             reserved: 0,
-            revenue: 200       // one sold ticket at 200
+            revenue: 200
         })
     })
 
@@ -181,7 +198,7 @@ describe('GET /events/:eventId/tickets/stats', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// GET /tickets/global-stats
+// GET /tickets/global-stats  (public)
 // ──────────────────────────────────────────────────────────────────────
 
 describe('GET /tickets/global-stats', () => {
@@ -190,7 +207,6 @@ describe('GET /tickets/global-stats', () => {
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('totalTickets', 6)
         expect(res.body).toHaveProperty('totalSold', 2)
-        // Drake has 1 sold @ 200, Bruno has 1 sold @ 89  →  total revenue = 289
         expect(res.body.totalRevenue).toBe(289)
         expect(res.body).toHaveProperty('mostPopularEventId')
     })

@@ -1,7 +1,6 @@
 import { apiFetch } from './apiFetch'
 
-const SERVER_IP = '192.168.1.8'
-const BASE_URL = `http://${SERVER_IP}:3000/admin`
+const BASE_URL = '/admin'
 
 export async function getObservations() {
     const res = await apiFetch(`${BASE_URL}/observations`)
