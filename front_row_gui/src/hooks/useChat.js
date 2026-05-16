@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { getMessages } from '../api/chatAPI'
 
-const SERVER_IP = '192.168.1.7'
+const SERVER_IP = '192.168.1.8'
 const WS_URL = `ws://${SERVER_IP}:3000`
 
 export function useChat(room = 'lobby') {
@@ -13,9 +13,15 @@ export function useChat(room = 'lobby') {
     useEffect(() => {
         let cancelled = false
         getMessages(room)
-            .then(data => { if (!cancelled) setMessages(data) })
-            .catch(err => { if (!cancelled) setError(err.message) })
-        return () => { cancelled = true }
+            .then(data => {
+                if (!cancelled) setMessages(data)
+            })
+            .catch(err => {
+                if (!cancelled) setError(err.message)
+            })
+        return () => {
+            cancelled = true
+        }
     }, [room])
 
     useEffect(() => {
@@ -60,5 +66,5 @@ export function useChat(room = 'lobby') {
         }))
     }, [room])
 
-    return { messages, sendMessage, connected, error }
+    return {messages, sendMessage, connected, error}
 }

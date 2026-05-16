@@ -1,4 +1,4 @@
-const SERVER_IP = '192.168.1.7'
+const SERVER_IP = '192.168.1.8'
 const BASE_URL = `http://${SERVER_IP}:3000/auth`
 
 async function postJSON(url, body) {

@@ -1,6 +1,6 @@
 import { apiFetch } from './apiFetch'
 
-const SERVER_IP = '192.168.1.7'
+const SERVER_IP = '192.168.1.8'
 const BASE_URL = `http://${SERVER_IP}:3000/chat`
 
 export async function getMessages(room = 'lobby', limit = 50) {
