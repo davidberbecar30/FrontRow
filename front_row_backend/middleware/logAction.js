@@ -1,6 +1,7 @@
 const { Op } = require('sequelize')
 const { Log, ObservationList } = require('../model/associations')
 const { runDetectors } = require('../service/detectorService')
+const { generateBehaviorNarrative } = require('../service/hfService')
 
 const RECENT_LOG_WINDOW_MS = 60_000
 
@@ -38,8 +39,18 @@ async function logAction(req, res, next) {
                 }
             })
             if (!alreadyFlagged) {
-                await ObservationList.create({ userId: req.user.id, reason })
+                const obs = await ObservationList.create({ userId: req.user.id, reason })
                 console.log(`[OBSERVATION] User ${req.user.id} flagged: ${reason}`)
+
+                // ── AI narrative — async, never blocks the request ─────────
+                generateBehaviorNarrative(recentLogs, reason)
+                    .then(narrative => {
+                        if (narrative) {
+                            return obs.update({ aiNarrative: narrative })
+                        }
+                    })
+                    .catch(err => console.warn('[HF] narrative update failed:', err.message))
+                // ──────────────────────────────────────────────────────────
             }
         }
     } catch (err) {

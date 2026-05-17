@@ -6,9 +6,12 @@ import AddUpdateView from "./views/AddUpdateView.jsx";
 import FavoritesView from "./views/FavoritesView.jsx";
 import LoginView from "./views/LoginView.jsx";
 import RegisterView from "./views/RegisterView.jsx";
+import ForgotPasswordView from "./views/ForgotPasswordView.jsx";
+import ResetPasswordView from "./views/ResetPasswordView.jsx";
 import StatisticsView from "./views/StatisticsView.jsx";
 import ChatView from "./views/ChatView.jsx";
 import AdminObservationsView from "./views/AdminObservationsView.jsx";
+import AdminDemoView from "./views/AdminDemoView.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import useVerifyToken from "./hooks/useVerifyToken.js";
 
@@ -42,6 +45,8 @@ function App() {
             <Route path="/statistics" element={<StatisticsView/>}/>
             <Route path="/login" element={<LoginView/>}/>
             <Route path="/register" element={<RegisterView/>}/>
+            <Route path="/forgot-password" element={<ForgotPasswordView/>}/>
+            <Route path="/reset-password" element={<ResetPasswordView/>}/>
 
             {/* ── Protected routes (any authenticated user) ── */}
             <Route path="/favorites" element={
@@ -61,6 +66,7 @@ function App() {
             <Route path="/admin/observations" element={
                 <ProtectedRoute><AdminObservationsView/></ProtectedRoute>
             }/>
+            <Route path="/admin/demo" element={<AdminDemoView/>}/>
         </Routes>
     )
 }

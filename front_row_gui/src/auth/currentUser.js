@@ -4,10 +4,11 @@
 // Inactivity timeout: after SESSION_TIMEOUT_MS of no user interaction the
 // session is automatically cleared (= forced logout).
 
-const USER_KEY           = 'currentUser'
-const TOKEN_KEY          = 'authToken'
-const LAST_ACTIVITY_KEY  = 'lastActivity'
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000   // 30 minutes (must match backend TOKEN_TTL_SECONDS)
+const USER_KEY            = 'currentUser'
+const TOKEN_KEY           = 'authToken'
+const REFRESH_TOKEN_KEY   = 'refreshToken'
+const LAST_ACTIVITY_KEY   = 'lastActivity'
+const SESSION_TIMEOUT_MS  = 30 * 60 * 1000   // 30 minutes (matches backend TOKEN_TTL_SECONDS)
 
 // ── Safe localStorage access (handles test/jsdom/denied environments) ──
 
@@ -106,11 +107,12 @@ export function setCurrentUser(user) {
 export function clearCurrentUser() {
     lsRemove(USER_KEY)
     lsRemove(TOKEN_KEY)
+    lsRemove(REFRESH_TOKEN_KEY)
     lsRemove(LAST_ACTIVITY_KEY)
     try { window.dispatchEvent(new Event('authChange')) } catch { /* noop */ }
 }
 
-// ── Token ────────────────────────────────────────────────────────
+// ── Access token ─────────────────────────────────────────────────
 
 export function getToken() {
     return lsGet(TOKEN_KEY)
@@ -121,9 +123,22 @@ export function setToken(token) {
     lsSet(TOKEN_KEY, token)
 }
 
-// Convenience: save both at login/register time
-export function setSession({ user, token }) {
+// ── Refresh token ─────────────────────────────────────────────────
+
+export function getRefreshToken() {
+    return lsGet(REFRESH_TOKEN_KEY)
+}
+
+export function setRefreshToken(token) {
+    if (!token) return
+    lsSet(REFRESH_TOKEN_KEY, token)
+}
+
+// ── Convenience: save everything at login/register/refresh time ──
+
+export function setSession({ user, token, refreshToken }) {
     setToken(token)
+    if (refreshToken) setRefreshToken(refreshToken)
     setCurrentUser(user)
     // Mark activity so the timeout clock starts now
     lsSet(LAST_ACTIVITY_KEY, Date.now().toString())

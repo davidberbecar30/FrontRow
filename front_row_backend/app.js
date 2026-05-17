@@ -1,13 +1,15 @@
-const express = require('express')
-const cors = require('cors')
+const express  = require('express')
+const cors     = require('cors')
+const passport = require('./config/passport')
 const { createHandler } = require('graphql-http/lib/use/express')
-const routes = require('./router/router')
-const schema = require('./graphql/schema')
-const resolvers = require('./graphql/resolvers')
+const routes      = require('./router/router')
+const schema      = require('./graphql/schema')
+const resolvers   = require('./graphql/resolvers')
 const ticketRoutes = require('./router/ticketRoutes')
-const authRoutes = require('./router/authRoutes')
-const chatRoutes = require('./router/chatRoutes')
-const adminRoutes = require('./router/adminRoutes')
+const authRoutes   = require('./router/authRoutes')
+const chatRoutes   = require('./router/chatRoutes')
+const adminRoutes  = require('./router/adminRoutes')
+const statsRoutes  = require('./router/statsRoutes')
 const { optionalAuth } = require('./middleware/authenticate')
 const logAction = require('./middleware/logAction')
 
@@ -24,6 +26,9 @@ app.use(cors({
 app.use(express.json())
 app.use('/images', express.static('public/images'))
 
+// Initialize Passport (stateless — no sessions, JWT only)
+app.use(passport.initialize())
+
 // Verify JWT (if present) and attach req.user. Issues a fresh token on every
 // authenticated request — used by the frontend to slide the session window.
 app.use(optionalAuth)
@@ -35,6 +40,7 @@ app.use('/events', routes)
 app.use('/auth',   authRoutes)
 app.use('/chat',   chatRoutes)
 app.use('/admin',  adminRoutes)
+app.use('/stats',  statsRoutes)
 
 if (process.env.NODE_ENV !== 'test') {
     const fakerRoutes = require('./router/fakerRoutes')

@@ -2,16 +2,23 @@ const bcrypt = require('bcrypt')
 const { Event, EventDate, Ticket, User, Role, Permission } = require('../model/associations')
 
 // ── Seeds the roles + permissions the auth flow depends on. ─────
-// Mirrors seed/authSeed.js but is fast and self-contained for tests.
+// Mirrors seed/authSeed.js exactly — kept in sync manually.
 async function seedRolesAndPermissions() {
     const PERMISSIONS = [
         'events.create', 'events.update', 'events.delete',
         'tickets.create', 'tickets.update', 'tickets.delete',
-        'users.manage', 'events.favorite'
+        'users.manage', 'events.favorite',
+        'admin.observations', 'admin.logs'    // added for Silver challenge
     ]
     const ROLES = {
         admin: PERMISSIONS,
-        user:  ['events.favorite']
+        moderator: [
+            'events.create', 'events.update',
+            'tickets.create', 'tickets.update',
+            'events.favorite',
+            'admin.observations', 'admin.logs'
+        ],
+        user: ['events.favorite']
     }
 
     const permRecords = await Permission.bulkCreate(PERMISSIONS.map(name => ({ name })))
@@ -32,7 +39,7 @@ async function seedTestUser({ email, role = 'user', password = 'password123' }) 
     if (!roleRow) throw new Error(`Role "${role}" missing — call seedRolesAndPermissions first`)
 
     return User.create({
-        firstName:   role === 'admin' ? 'Admin' : 'Regular',
+        firstName:   role === 'admin' ? 'Admin' : role === 'moderator' ? 'Moderator' : 'Regular',
         lastName:    'Tester',
         email,
         dateOfBirth: '1990-01-01',

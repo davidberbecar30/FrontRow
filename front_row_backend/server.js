@@ -8,6 +8,7 @@ console.log('1. requires loaded')
 
 const { sequelize } = require('./model/associations.js')
 const { seedAuth } = require('./seed/authSeed')
+const { createIndices } = require('./seed/createIndices')
 const { connectMongo } = require('./mongoDb')
 console.log('2. associations loaded')
 
@@ -46,8 +47,12 @@ async function start() {
         await sequelize.authenticate()
         console.log('4. authenticated')
 
-        await sequelize.sync({ force: false })
+        // alter:true adds new columns (e.g. aiNarrative) without dropping existing data
+        await sequelize.sync({ alter: true })
         console.log('5. synced')
+
+        await createIndices()
+        console.log('5a. indices created')
 
         await seedAuth()
         console.log('6. auth seeded')

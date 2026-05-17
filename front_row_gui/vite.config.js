@@ -43,6 +43,13 @@ export default defineConfig({
             if (req.headers.accept?.includes('text/html')) return '/index.html'
           }
         },
+        '/stats': {
+          target: 'https://192.168.1.8:3000',
+          secure: false,
+          bypass: (req) => {
+            if (req.headers.accept?.includes('text/html')) return '/index.html'
+          }
+        },
         '/ws': {
           target: 'wss://192.168.1.8:3000',
           secure: false,

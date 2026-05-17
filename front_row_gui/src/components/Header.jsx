@@ -22,14 +22,6 @@ function Header() {
         return () => window.removeEventListener('authChange', handler)
     }, [])
 
-    async function startFaker() {
-        await fetch('/faker/start', { method: 'POST' })
-    }
-
-    async function stopFaker() {
-        await fetch('/faker/stop', { method: 'POST' })
-    }
-
     function handleLogout() {
         clearCurrentUser()
         navigate('/login')
@@ -66,8 +58,16 @@ function Header() {
 
                     {admin && (
                         <>
-                            <button onClick={startFaker}>▶ Start Faker</button>
-                            <button onClick={stopFaker}>⏹ Stop Faker</button>
+                            <button
+                                onClick={() => navigate('/admin/demo')}
+                                style={{
+                                    background: '#6C5CE7', color: '#fff', border: 'none',
+                                    borderRadius: 8, padding: '0.4rem 0.9rem',
+                                    fontWeight: 700, fontSize: 13, cursor: 'pointer'
+                                }}
+                            >
+                                🎬 Demo Panel
+                            </button>
                             <button onClick={() => navigate('/admin/observations')}>👁 Observations</button>
                         </>
                     )}

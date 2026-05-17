@@ -4,18 +4,21 @@ const BASE_URL = '/admin'
 
 export async function getObservations() {
     const res = await apiFetch(`${BASE_URL}/observations`)
-    if (!res.ok) throw new Error('Failed to fetch observations')
-    return res.json()
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || `Failed to fetch observations (${res.status})`)
+    return data
 }
 
 export async function clearObservation(id) {
     const res = await apiFetch(`${BASE_URL}/observations/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Failed to clear observation')
-    return res.json()
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || `Failed to clear observation (${res.status})`)
+    return data
 }
 
 export async function getLogs(limit = 100) {
     const res = await apiFetch(`${BASE_URL}/logs?limit=${limit}`)
-    if (!res.ok) throw new Error('Failed to fetch logs')
-    return res.json()
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || `Failed to fetch logs (${res.status})`)
+    return data
 }
