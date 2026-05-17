@@ -1,19 +1,45 @@
+const https = require('https')
 const http = require('http')
+const fs = require('fs')
+const path = require('path')
+
 const app = require('./app')
 console.log('1. requires loaded')
 
 const { sequelize } = require('./model/associations.js')
 const { seedAuth } = require('./seed/authSeed')
+const { createIndices } = require('./seed/createIndices')
 const { connectMongo } = require('./mongoDb')
 console.log('2. associations loaded')
 
 const { initWebSocket } = require('./websocket/wsServer')
 
 const PORT = 3000
-const HOST='0.0.0.0'
+const HOST = '0.0.0.0'
 
-const server = http.createServer(app)
-initWebSocket(server)
+// ── Build HTTPS server if certs exist, otherwise fall back to HTTP ──
+const CERT_DIR = path.join(__dirname, 'certs')
+const KEY_PATH  = path.join(CERT_DIR, 'server.key')
+const CERT_PATH = path.join(CERT_DIR, 'server.cert')
+
+let server
+let protocol
+if (fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH)) {
+    server = https.createServer(
+        {
+            key:  fs.readFileSync(KEY_PATH),
+            cert: fs.readFileSync(CERT_PATH)
+        },
+        app
+    )
+    protocol = 'https'
+} else {
+    console.warn('No certs found in /certs — falling back to HTTP. Run the openssl command in the README to generate them.')
+    server = http.createServer(app)
+    protocol = 'http'
+}
+
+initWebSocket(server)   // Attaches WebSocket to the same server (becomes wss:// when HTTPS is used)
 
 async function start() {
     try {
@@ -21,8 +47,12 @@ async function start() {
         await sequelize.authenticate()
         console.log('4. authenticated')
 
-        await sequelize.sync({ force: false })
+        // alter:true adds new columns (e.g. aiNarrative) without dropping existing data
+        await sequelize.sync({ alter: true })
         console.log('5. synced')
+
+        await createIndices()
+        console.log('5a. indices created')
 
         await seedAuth()
         console.log('6. auth seeded')
@@ -30,8 +60,9 @@ async function start() {
         await connectMongo()
         console.log('7. mongo connected')
 
-        server.listen(PORT,HOST, () => {
-            console.log(`Server running on http://localhost:${PORT}`)
+        server.listen(PORT, HOST, () => {
+            console.log(`Server running on ${protocol}://localhost:${PORT}`)
+            console.log(`WebSocket: ${protocol === 'https' ? 'wss' : 'ws'}://localhost:${PORT}`)
         })
     } catch (err) {
         console.error('ERROR:', err)

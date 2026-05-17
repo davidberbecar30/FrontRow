@@ -13,8 +13,6 @@ import { getCurrentUser, clearCurrentUser, hasPermission, isAdmin } from '../aut
 
 function Header() {
 
-    const SERVER_IP = '192.168.1.7'
-
     const navigate = useNavigate()
     const [user, setUser] = useState(getCurrentUser())
 
@@ -23,14 +21,6 @@ function Header() {
         window.addEventListener('authChange', handler)
         return () => window.removeEventListener('authChange', handler)
     }, [])
-
-    async function startFaker() {
-        await fetch(`http://${SERVER_IP}:3000/faker/start`, { method: 'POST' })
-    }
-
-    async function stopFaker() {
-        await fetch(`http://${SERVER_IP}:3000/faker/stop`, { method: 'POST' })
-    }
 
     function handleLogout() {
         clearCurrentUser()
@@ -68,8 +58,16 @@ function Header() {
 
                     {admin && (
                         <>
-                            <button onClick={startFaker}>▶ Start Faker</button>
-                            <button onClick={stopFaker}>⏹ Stop Faker</button>
+                            <button
+                                onClick={() => navigate('/admin/demo')}
+                                style={{
+                                    background: '#6C5CE7', color: '#fff', border: 'none',
+                                    borderRadius: 8, padding: '0.4rem 0.9rem',
+                                    fontWeight: 700, fontSize: 13, cursor: 'pointer'
+                                }}
+                            >
+                                🎬 Demo Panel
+                            </button>
                             <button onClick={() => navigate('/admin/observations')}>👁 Observations</button>
                         </>
                     )}

@@ -7,6 +7,8 @@ const { Role }      = require('./Role.js')
 const { Permission } = require('./Permission.js')
 const { Log }       = require('./Log.js')
 const { ObservationList } = require('./ObservationList.js')
+const { RefreshToken } = require('./RefreshToken.js')
+const { PasswordResetToken } = require('./PasswordResetToken.js')
 
 Event.hasMany(Ticket,    { foreignKey: 'eventId', as: 'tickets' })
 Ticket.belongsTo(Event,  { foreignKey: 'eventId', as: 'event'   })
@@ -26,10 +28,17 @@ Log.belongsTo(User,              { foreignKey: 'userId', as: 'user' })
 User.hasMany(ObservationList,    { foreignKey: 'userId', as: 'observations' })
 ObservationList.belongsTo(User,  { foreignKey: 'userId', as: 'user' })
 
+User.hasMany(RefreshToken,       { foreignKey: 'userId', as: 'refreshTokens' })
+RefreshToken.belongsTo(User,     { foreignKey: 'userId', as: 'user' })
+
+User.hasMany(PasswordResetToken, { foreignKey: 'userId', as: 'passwordResetTokens' })
+PasswordResetToken.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+
 
 module.exports = {
     sequelize,
     Event, Ticket, EventDate,
     User, Role, Permission,
-    Log, ObservationList
+    Log, ObservationList,
+    RefreshToken, PasswordResetToken
 }

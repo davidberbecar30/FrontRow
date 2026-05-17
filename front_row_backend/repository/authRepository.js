@@ -1,4 +1,5 @@
-const {User,Role,Permission}=require("../model/associations")
+const { User, Role, Permission, RefreshToken, PasswordResetToken } = require('../model/associations')
+const { Op } = require('sequelize')
 
 const withRoleAndPermissions = {
     include: [{
@@ -7,25 +8,30 @@ const withRoleAndPermissions = {
     }]
 }
 
-class AuthRepository{
+class AuthRepository {
 
     constructor() {}
 
-    async findUserByEmail(email){
+    // ── Users ────────────────────────────────────────────────────────
+
+    async findUserByEmail(email) {
         return User.findOne({
-            where:{email},
+            where: { email },
             ...withRoleAndPermissions
         })
     }
 
-    async findUserById(userId){
+    async findUserById(userId) {
         return User.findByPk(userId, withRoleAndPermissions)
     }
 
-    async createUser(userData){
+    async createUser(userData) {
         return User.create(userData)
     }
 
+    async updateUserPassword(userId, hashedPassword) {
+        return User.update({ password: hashedPassword }, { where: { id: userId } })
+    }
 
     async findAllUsers() {
         return User.findAll({
@@ -35,6 +41,7 @@ class AuthRepository{
         })
     }
 
+    // ── Roles & Permissions ──────────────────────────────────────────
 
     async findRoleByName(name) {
         return Role.findOne({ where: { name } })
@@ -46,6 +53,54 @@ class AuthRepository{
         })
     }
 
+    // ── Refresh Tokens ───────────────────────────────────────────────
+
+    async createRefreshToken({ userId, tokenHash, expiresAt }) {
+        return RefreshToken.create({ userId, tokenHash, expiresAt })
+    }
+
+    async findRefreshToken(tokenHash) {
+        return RefreshToken.findOne({
+            where: {
+                tokenHash,
+                revoked:   false,
+                expiresAt: { [Op.gt]: new Date() }
+            }
+        })
+    }
+
+    async revokeRefreshToken(tokenHash) {
+        return RefreshToken.update({ revoked: true }, { where: { tokenHash } })
+    }
+
+    async revokeAllUserRefreshTokens(userId) {
+        return RefreshToken.update({ revoked: true }, { where: { userId, revoked: false } })
+    }
+
+    // ── Password Reset Tokens ────────────────────────────────────────
+
+    async createPasswordResetToken({ userId, tokenHash, expiresAt }) {
+        // Invalidate any prior unused tokens for this user before creating a new one
+        await PasswordResetToken.update(
+            { used: true },
+            { where: { userId, used: false } }
+        )
+        return PasswordResetToken.create({ userId, tokenHash, expiresAt })
+    }
+
+    async findPasswordResetToken(tokenHash) {
+        return PasswordResetToken.findOne({
+            where: {
+                tokenHash,
+                used:      false,
+                expiresAt: { [Op.gt]: new Date() }
+            }
+        })
+    }
+
+    async markResetTokenUsed(tokenHash) {
+        return PasswordResetToken.update({ used: true }, { where: { tokenHash } })
+    }
 }
 
-module.exports=new AuthRepository()
+module.exports = new AuthRepository()

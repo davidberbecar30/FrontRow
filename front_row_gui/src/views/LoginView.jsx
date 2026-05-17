@@ -1,12 +1,16 @@
 import styles from './LoginView.module.css'
 import logo from '../assets/logo.svg'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../api/authAPI'
-import { setCurrentUser } from '../auth/currentUser'
+import { setSession } from '../auth/currentUser'
 
 function LoginView() {
     const navigate = useNavigate()
+    const location = useLocation()
+
+    const from = location.state?.from?.pathname || '/events'
+
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [errors, setErrors] = useState({})
@@ -25,21 +29,22 @@ function LoginView() {
     async function handleLogin() {
         setServerError('')
         const e = validate()
-        if (Object.keys(e).length > 0) {
-            setErrors(e)
-            return
-        }
+        if (Object.keys(e).length > 0) { setErrors(e); return }
         setErrors({})
         setLoading(true)
         try {
-            const user = await login(email, password)
-            setCurrentUser(user)
-            navigate('/events')
+            const result = await login(email, password)
+            setSession(result)
+            navigate(from, { replace: true })
         } catch (err) {
             setServerError(err.message || 'Login failed')
         } finally {
             setLoading(false)
         }
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === 'Enter') handleLogin()
     }
 
     return (
@@ -61,6 +66,7 @@ function LoginView() {
                         placeholder="Enter your email"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
                     {errors.email && <span className={styles.error}>{errors.email}</span>}
                 </div>
@@ -73,9 +79,14 @@ function LoginView() {
                         placeholder="Enter your password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
                     {errors.password && <span className={styles.error}>{errors.password}</span>}
                 </div>
+
+                <p className={styles.forgotLink} onClick={() => navigate('/forgot-password')}>
+                    Forgot your password?
+                </p>
 
                 {serverError && (
                     <div className={styles.error} style={{ marginBottom: '1rem' }}>
@@ -83,11 +94,7 @@ function LoginView() {
                     </div>
                 )}
 
-                <button
-                    className={styles.loginBtn}
-                    onClick={handleLogin}
-                    disabled={loading}
-                >
+                <button className={styles.loginBtn} onClick={handleLogin} disabled={loading}>
                     {loading ? 'Logging in...' : 'Log In'}
                 </button>
 

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { setSession } from '../auth/currentUser'
 import React from 'react';
 import '@testing-library/jest-dom';
 import Header from "../components/Header.jsx";
@@ -40,6 +41,19 @@ const singleDateEvent = {
         { date: "2026-09-12", location: "Nashville, TN", venue: "Bridgestone Arena" },
     ]
 }
+
+beforeAll(() => {
+    // Set up an authenticated session so that the Header renders the
+    // Add-event icon (requires events.create permission).
+    setSession({
+        user: {
+            id: 1,
+            firstName: 'Test',
+            role: { name: 'admin', permissions: [{ name: 'events.create' }] },
+        },
+        token: 'test-jwt-token'
+    })
+})
 
 beforeEach(() => {
     // clear and reset events array

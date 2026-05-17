@@ -20,6 +20,11 @@ ObservationList.init(
         reason: {
             type: DataTypes.STRING(500),
             allowNull: false
+        },
+        aiNarrative: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            defaultValue: null
         }
     },
     {

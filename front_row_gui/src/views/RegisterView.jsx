@@ -3,7 +3,7 @@ import logo from '../assets/logo.svg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { register } from '../api/authAPI'
-import { setCurrentUser } from '../auth/currentUser'
+import { setSession } from '../auth/currentUser'
 
 function RegisterView() {
     const navigate = useNavigate()
@@ -35,15 +35,14 @@ function RegisterView() {
         setErrors({})
         setLoading(true)
         try {
-            // Backend expects `dateOfBirth`, not `dob`
-            const user = await register({
-                firstName: form.firstName,
-                lastName:  form.lastName,
-                email:     form.email,
-                password:  form.password,
+            const { user, token } = await register({
+                firstName:   form.firstName,
+                lastName:    form.lastName,
+                email:       form.email,
+                password:    form.password,
                 dateOfBirth: form.dob
             })
-            setCurrentUser(user)
+            setSession({ user, token })
             navigate('/events')
         } catch (err) {
             setServerError(err.message || 'Registration failed')

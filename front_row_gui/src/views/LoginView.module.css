@@ -140,3 +140,16 @@
 .signupLink:hover {
     opacity: 0.8;
 }
+
+.forgotLink {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #FFFFFF;
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: center;
+    margin-top: -8px;
+    opacity: 0.85;
+}
+
+.forgotLink:hover { opacity: 1; }

@@ -1,9 +1,26 @@
 const express = require('express')
-const router = express.Router()
+const router  = express.Router()
 const adminController = require('../controller/adminController')
+const { requireAuth } = require('../middleware/authenticate')
+const { requireRole, requirePermission } = require('../middleware/authorize')
 
-router.get('/observations',         adminController.getObservations)
-router.get('/logs',                 adminController.getLogs)
-router.delete('/observations/:id',  adminController.clearObservation)
+// All admin endpoints require a valid login
+router.use(requireAuth)
+
+// Read-only admin data: admin and moderator can both view
+router.get('/observations',
+    requirePermission('admin.observations'),
+    adminController.getObservations
+)
+router.get('/logs',
+    requirePermission('admin.logs'),
+    adminController.getLogs
+)
+
+// Destructive actions: admin only
+router.delete('/observations/:id',
+    requireRole('admin'),
+    adminController.clearObservation
+)
 
 module.exports = router
