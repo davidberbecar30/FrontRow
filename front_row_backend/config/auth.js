@@ -18,6 +18,14 @@ const REFRESH_TOKEN_TTL_DAYS = 7
 // Password-reset token: single-use, expires in 1 hour.
 const RESET_TOKEN_TTL_MINUTES = 60
 
+// 2FA login code: 6-digit code, expires in 5 minutes.
+const LOGIN_CODE_TTL_MINUTES = 5
+
+// Temporary JWT issued after successful password verification (before 2FA).
+// Short-lived (5 min) — only used to prove the first factor succeeded.
+const LOGIN_TOKEN_TTL_SECONDS = 5 * 60
+const LOGIN_TOKEN_SECRET = process.env.LOGIN_TOKEN_SECRET || 'login-token-fallback-secret-CHANGE-IN-PROD'
+
 // OAuth — set these in .env when you have real OAuth apps registered
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID     || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
@@ -27,15 +35,24 @@ const GITHUB_CLIENT_ID     = process.env.GITHUB_CLIENT_ID     || ''
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || ''
 const GITHUB_CALLBACK_URL  = process.env.GITHUB_CALLBACK_URL  || 'http://localhost:3000/auth/github/callback'
 
+// Gmail SMTP credentials for transactional emails
+const GMAIL_EMAIL    = process.env.GMAIL_EMAIL    || ''
+const GMAIL_PASSWORD = process.env.GMAIL_PASSWORD || ''
+
 module.exports = {
     JWT_SECRET,
     TOKEN_TTL_SECONDS,
     REFRESH_TOKEN_TTL_DAYS,
     RESET_TOKEN_TTL_MINUTES,
+    LOGIN_CODE_TTL_MINUTES,
+    LOGIN_TOKEN_TTL_SECONDS,
+    LOGIN_TOKEN_SECRET,
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
     GOOGLE_CALLBACK_URL,
     GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET,
-    GITHUB_CALLBACK_URL
+    GITHUB_CALLBACK_URL,
+    GMAIL_EMAIL,
+    GMAIL_PASSWORD
 }

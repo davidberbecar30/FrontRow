@@ -2,7 +2,7 @@ import styles from './LoginView.module.css'
 import logo from '../assets/logo.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { login } from '../api/authAPI'
+import { login, verifyLoginCode } from '../api/authAPI'
 import { setSession } from '../auth/currentUser'
 
 function LoginView() {
@@ -11,11 +11,19 @@ function LoginView() {
 
     const from = location.state?.from?.pathname || '/events'
 
+    // Step 1: email + password
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [errors, setErrors] = useState({})
     const [serverError, setServerError] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // Step 2: 2FA code
+    const [step, setStep] = useState('credentials') // 'credentials' | 'code'
+    const [loginToken, setLoginToken] = useState('')
+    const [code, setCode] = useState('')
+    const [codeError, setCodeError] = useState('')
+    const [codeLoading, setCodeLoading] = useState(false)
 
     function validate() {
         const e = {}
@@ -34,8 +42,16 @@ function LoginView() {
         setLoading(true)
         try {
             const result = await login(email, password)
-            setSession(result)
-            navigate(from, { replace: true })
+            if (result.requiresTwoFactor) {
+                // Move to 2FA code step
+                setLoginToken(result.loginToken)
+                setStep('code')
+                setServerError('')
+            } else {
+                // OAuth or direct login (shouldn't happen with local strategy anymore)
+                setSession(result)
+                navigate(from, { replace: true })
+            }
         } catch (err) {
             setServerError(err.message || 'Login failed')
         } finally {
@@ -43,10 +59,88 @@ function LoginView() {
         }
     }
 
+    async function handleVerifyCode() {
+        setCodeError('')
+        if (!code.trim() || code.length !== 6 || !/^\d{6}$/.test(code)) {
+            setCodeError('Enter a valid 6-digit code')
+            return
+        }
+        setCodeLoading(true)
+        try {
+            const result = await verifyLoginCode(loginToken, code)
+            setSession(result)
+            navigate(from, { replace: true })
+        } catch (err) {
+            setCodeError(err.message || 'Verification failed')
+        } finally {
+            setCodeLoading(false)
+        }
+    }
+
     function handleKeyDown(e) {
         if (e.key === 'Enter') handleLogin()
     }
 
+    function handleCodeKeyDown(e) {
+        if (e.key === 'Enter') handleVerifyCode()
+    }
+
+    function handleBackToCredentials() {
+        setStep('credentials')
+        setCode('')
+        setCodeError('')
+    }
+
+    // ── 2FA Code Step ────────────────────────────────────────────────
+    if (step === 'code') {
+        return (
+            <div className={styles.page}>
+                <div className={styles.card}>
+
+                    <div className={styles.logoWrapper}>
+                        <img src={logo} alt="FrontRow logo" className={styles.logo} />
+                        <h1 className={styles.brandName}>FrontRow</h1>
+                    </div>
+
+                    <h2 className={styles.title}>VERIFY YOUR LOGIN</h2>
+
+                    <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, textAlign: 'center', maxWidth: 320, marginBottom: 8 }}>
+                        A 6-digit verification code has been sent to <strong>{email}</strong>.
+                        Check your inbox (and spam folder).
+                    </p>
+
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>Verification Code</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            placeholder="000000"
+                            value={code}
+                            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            onKeyDown={handleCodeKeyDown}
+                            autoFocus
+                        />
+                        {codeError && <span className={styles.error}>{codeError}</span>}
+                    </div>
+
+                    <button className={styles.loginBtn} onClick={handleVerifyCode} disabled={codeLoading}>
+                        {codeLoading ? 'Verifying...' : 'Verify Code'}
+                    </button>
+
+                    <p className={styles.signupText}>
+                        <span className={styles.signupLink} onClick={handleBackToCredentials} style={{ cursor: 'pointer' }}>
+                            Back to Login
+                        </span>
+                    </p>
+
+                </div>
+            </div>
+        )
+    }
+
+    // ── Credentials Step ─────────────────────────────────────────────
     return (
         <div className={styles.page}>
             <div className={styles.card}>

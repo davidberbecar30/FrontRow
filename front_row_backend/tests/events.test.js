@@ -1,7 +1,7 @@
 const request = require('supertest')
 const app = require('../app')
 const { sequelize, Ticket, EventDate } = require('../model/associations')
-const { seedTestData, seedRolesAndPermissions, seedTestUser } = require('./fixtures')
+const { seedTestData, seedRolesAndPermissions, seedTestUser, fullLogin } = require('./fixtures')
 
 let adminToken
 let userToken
@@ -15,10 +15,8 @@ beforeEach(async () => {
     await seedRolesAndPermissions()
     await seedTestUser({ email: 'admin@x.com', password: 'pw', role: 'admin' })
     await seedTestUser({ email: 'user@x.com',  password: 'pw' })
-    const adminRes = await request(app).post('/auth/login').send({ email: 'admin@x.com', password: 'pw' })
-    const userRes  = await request(app).post('/auth/login').send({ email: 'user@x.com',  password: 'pw' })
-    adminToken = adminRes.body.token
-    userToken  = userRes.body.token
+    adminToken = (await fullLogin('admin@x.com', 'pw')).token
+    userToken  = (await fullLogin('user@x.com',  'pw')).token
 
     await seedTestData()
 })

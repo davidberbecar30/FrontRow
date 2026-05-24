@@ -14,7 +14,7 @@ const request = require('supertest')
 const jwt     = require('jsonwebtoken')
 const app     = require('../app')
 const { sequelize } = require('../model/associations')
-const { seedRolesAndPermissions, seedTestUser } = require('./fixtures')
+const { seedRolesAndPermissions, seedTestUser, fullLogin } = require('./fixtures')
 const { JWT_SECRET } = require('../config/auth')
 const authService = require('../service/authService')
 
@@ -50,8 +50,8 @@ describe('JWT contains permissions array', () => {
 
     it('admin token includes full permission set', async () => {
         await seedTestUser({ email: 'admin@test.com', password: 'pw', role: 'admin' })
-        const res = await request(app).post('/auth/login').send({ email: 'admin@test.com', password: 'pw' })
-        const decoded = jwt.verify(res.body.token, JWT_SECRET)
+        const result = await fullLogin('admin@test.com', 'pw')
+        const decoded = jwt.verify(result.token, JWT_SECRET)
         expect(decoded.permissions).toEqual(expect.arrayContaining([
             'events.create', 'events.delete', 'users.manage', 'admin.logs'
         ]))
@@ -78,12 +78,14 @@ describe('POST /auth/refresh', () => {
 
     beforeEach(async () => {
         await seedTestUser({ email: 'refresh@test.com', password: 'pw' })
-        const res = await request(app).post('/auth/login').send({ email: 'refresh@test.com', password: 'pw' })
-        firstRefreshToken = res.body.refreshToken
-        firstAccessToken  = res.body.token
+        const result = await fullLogin('refresh@test.com', 'pw')
+        firstRefreshToken = result.refreshToken
+        firstAccessToken  = result.token
     })
 
     it('returns a new token pair', async () => {
+        // Small delay so the new JWT gets a different `iat` timestamp
+        await new Promise(r => setTimeout(r, 1100))
         const res = await request(app).post('/auth/refresh').send({ refreshToken: firstRefreshToken })
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('token')
@@ -118,9 +120,9 @@ describe('POST /auth/logout', () => {
 
     beforeEach(async () => {
         await seedTestUser({ email: 'logout@test.com', password: 'pw' })
-        const res = await request(app).post('/auth/login').send({ email: 'logout@test.com', password: 'pw' })
-        accessToken  = res.body.token
-        refreshToken = res.body.refreshToken
+        const result = await fullLogin('logout@test.com', 'pw')
+        accessToken  = result.token
+        refreshToken = result.refreshToken
     })
 
     it('returns 200', async () => {
@@ -188,12 +190,11 @@ describe('Password recovery flow', () => {
         })
         expect(oldLogin.status).toBe(401)
 
-        // Step 4: new password works
-        const newLogin = await request(app).post('/auth/login').send({
-            email: 'recover@test.com', password: 'newpass123'
-        })
-        expect(newLogin.status).toBe(200)
-        expect(newLogin.body).toHaveProperty('token')
+        // Step 4: new password works (via full 2FA flow)
+        const newLoginResult = await fullLogin('recover@test.com', 'newpass123')
+        expect(newLoginResult).toHaveProperty('token')
+        expect(newLoginResult).toHaveProperty('refreshToken')
+        expect(newLoginResult).toHaveProperty('user')
     })
 
     it('reset token cannot be reused', async () => {
@@ -229,9 +230,9 @@ describe('requirePermission middleware', () => {
         await seedTestUser({ email: 'admin@perm.com', password: 'pw', role: 'admin' })
         await seedTestUser({ email: 'mod@perm.com',   password: 'pw', role: 'moderator' })
 
-        userToken  = (await request(app).post('/auth/login').send({ email: 'user@perm.com',  password: 'pw' })).body.token
-        adminToken = (await request(app).post('/auth/login').send({ email: 'admin@perm.com', password: 'pw' })).body.token
-        modToken   = (await request(app).post('/auth/login').send({ email: 'mod@perm.com',   password: 'pw' })).body.token
+        userToken  = (await fullLogin('user@perm.com',  'pw')).token
+        adminToken = (await fullLogin('admin@perm.com', 'pw')).token
+        modToken   = (await fullLogin('mod@perm.com',   'pw')).token
     })
 
     it('user gets 403 on events.create (no permission)', async () => {

@@ -409,10 +409,10 @@ export default function AdminDemoView() {
                                     color: '#A29BFE', fontSize: 13,
                                     background: '#2D1F60', padding: '2px 8px', borderRadius: 4
                                 }}>
-                                    http://localhost:3000{path}
+                                    http://10.51.0.110:5173{path}
                                 </code>
                                 <button
-                                    onClick={() => navigator.clipboard.writeText(`http://localhost:3000${path}`)}
+                                    onClick={() => navigator.clipboard.writeText(`http://10.51.0.110:5173${path}`)}
                                     style={{
                                         background: 'transparent', border: '1px solid #4d3e96',
                                         color: '#9988BB', borderRadius: 4, padding: '2px 8px',

@@ -1,7 +1,7 @@
 import styles from './PresentationView.module.css'
 import img1 from "../assets/img.png"
 import img2 from "../assets/samuel-regan-asante-3BcNKoySAq0-unsplash.jpg"
-import logo from "../../public/logo2.svg"
+const logo = "/logo2.svg"
 import { useNavigate } from "react-router-dom"
 
 function PresentationView() {

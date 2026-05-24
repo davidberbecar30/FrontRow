@@ -1,4 +1,4 @@
-const { User, Role, Permission, RefreshToken, PasswordResetToken } = require('../model/associations')
+const { User, Role, Permission, RefreshToken, PasswordResetToken, LoginCode } = require('../model/associations')
 const { Op } = require('sequelize')
 
 const withRoleAndPermissions = {
@@ -100,6 +100,31 @@ class AuthRepository {
 
     async markResetTokenUsed(tokenHash) {
         return PasswordResetToken.update({ used: true }, { where: { tokenHash } })
+    }
+
+    // ── 2FA Login Codes ──────────────────────────────────────────────
+
+    async createLoginCode({ userId, codeHash, expiresAt }) {
+        // Invalidate any prior unused codes for this user
+        await LoginCode.update(
+            { used: true },
+            { where: { userId, used: false } }
+        )
+        return LoginCode.create({ userId, codeHash, expiresAt })
+    }
+
+    async findValidLoginCode(codeHash) {
+        return LoginCode.findOne({
+            where: {
+                codeHash,
+                used:      false,
+                expiresAt: { [Op.gt]: new Date() }
+            }
+        })
+    }
+
+    async markLoginCodeUsed(codeHash) {
+        return LoginCode.update({ used: true }, { where: { codeHash } })
     }
 }
 
