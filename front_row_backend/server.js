@@ -41,6 +41,33 @@ if (fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH)) {
 
 initWebSocket(server)   // Attaches WebSocket to the same server (becomes wss:// when HTTPS is used)
 
+/**
+ * Seed a handful of initial events so the UI has data on first load.
+ * Does nothing if events already exist.
+ */
+async function seedInitialEvents() {
+    const { Event, EventDate } = require('./model/associations')
+    const { generateFakeEvent } = require('./faker/eventGenerator')
+
+    const count = await Event.count()
+    if (count > 0) {
+        console.log(`6a. ${count} events already exist — skipping initial seed`)
+        return
+    }
+
+    const INITIAL_EVENTS = 12
+    for (let i = 0; i < INITIAL_EVENTS; i++) {
+        const { dates, ...fields } = generateFakeEvent()
+        const event = await Event.create(fields)
+        if (dates.length > 0) {
+            await EventDate.bulkCreate(
+                dates.map(d => ({ ...d, eventId: event.id }))
+            )
+        }
+    }
+    console.log(`6a. Seeded ${INITIAL_EVENTS} initial events`)
+}
+
 async function start() {
     try {
         console.log('3. about to authenticate')
@@ -56,6 +83,9 @@ async function start() {
 
         await seedAuth()
         console.log('6. auth seeded')
+
+        await seedInitialEvents()
+        console.log('6b. initial events seeded')
 
         await connectMongo()
         console.log('7. mongo connected')

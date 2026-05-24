@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt')
+const request = require('supertest')
+const app = require('../app')
 const { Event, EventDate, Ticket, User, Role, Permission } = require('../model/associations')
 
 // ── Seeds the roles + permissions the auth flow depends on. ─────
@@ -46,6 +48,23 @@ async function seedTestUser({ email, role = 'user', password = 'password123' }) 
         password:    await bcrypt.hash(password, 4),  // low rounds → fast tests
         roleId:      roleRow.id
     })
+}
+
+/**
+ * Perform a full 2FA login (password + verification code) and return
+ * the full auth result { user, token, refreshToken }.
+ * Requires NODE_ENV=test so the raw code is included in the login response.
+ */
+async function fullLogin(email, password) {
+    const loginRes = await request(app)
+        .post('/auth/login')
+        .send({ email, password })
+
+    const verifyRes = await request(app)
+        .post('/auth/verify-login-code')
+        .send({ loginToken: loginRes.body.loginToken, code: loginRes.body.code })
+
+    return verifyRes.body
 }
 
 // ── Domain seed (Events / Tickets / Dates). Auth must already be seeded. ─
@@ -103,4 +122,4 @@ async function seedTestData() {
     return { drake, bruno, lakers, blaine }
 }
 
-module.exports = { seedTestData, seedRolesAndPermissions, seedTestUser }
+module.exports = { seedTestData, seedRolesAndPermissions, seedTestUser, fullLogin }

@@ -1,11 +1,16 @@
 const crypto   = require('crypto')
 const bcrypt   = require('bcrypt')
+const jwt      = require('jsonwebtoken')
 const authRepo = require('../repository/authRepository')
 const { signToken } = require('../middleware/authenticate')
 const {
     REFRESH_TOKEN_TTL_DAYS,
-    RESET_TOKEN_TTL_MINUTES
+    RESET_TOKEN_TTL_MINUTES,
+    LOGIN_CODE_TTL_MINUTES,
+    LOGIN_TOKEN_TTL_SECONDS,
+    LOGIN_TOKEN_SECRET
 } = require('../config/auth')
+const { sendLoginCode, sendPasswordResetEmail } = require('./emailService')
 
 const DEFAULT_ROLE = 'user'
 
@@ -44,7 +49,51 @@ class AuthService {
         return this._authResult(fullUser)
     }
 
-    // ── Local login ──────────────────────────────────────────────────
+    // ── Local login (Step 1: password verification → sends 2FA code) ─
+
+    /**
+     * Called after Passport's local strategy has already verified the password.
+     * Generates a 6-digit 2FA code, stores it hashed in the DB, sends it via
+     * email (and console), and returns a short-lived loginToken.
+     */
+    async sendTwoFactorCode(userInstance) {
+        const userId = userInstance.id
+        const email  = userInstance.email
+
+        // ── Issue 2FA code ─────────────────────────────────────────
+        const code = this._generateLoginCode()
+        const codeHash = this._hashToken(code)
+        const expiresAt = new Date(Date.now() + LOGIN_CODE_TTL_MINUTES * 60 * 1000)
+
+        await authRepo.createLoginCode({ userId, codeHash, expiresAt })
+
+        // Send the code via email AND log to console for testing
+        await sendLoginCode(email, code)
+        console.log(`\n[2FA CODE] ${code} for ${email}\n`)
+
+        // Issue a short-lived "login token" proving password verification
+        const loginToken = jwt.sign(
+            { id: userId, email },
+            LOGIN_TOKEN_SECRET,
+            { expiresIn: LOGIN_TOKEN_TTL_SECONDS }
+        )
+
+        const result = {
+            requiresTwoFactor: true,
+            loginToken,
+            email
+        }
+
+        // In test mode, include the raw code so tests can complete the flow
+        if (process.env.NODE_ENV === 'test') {
+            result.code = code
+        }
+
+        return result
+    }
+
+    // ── Local login (password-verification path, used when passport is
+    //     NOT involved, e.g. direct service calls) ────────────────────
 
     async login(email, password) {
         const existingUser = await authRepo.findUserByEmail(email)
@@ -53,12 +102,57 @@ class AuthService {
         const match = await bcrypt.compare(password, existingUser.password)
         if (!match) return null
 
-        return this._authResult(existingUser)
+        // Password verified — delegate to sendTwoFactorCode
+        return this.sendTwoFactorCode(existingUser)
+    }
+
+    // ── 2FA: verify login code (Step 2: code → full auth tokens) ────
+
+    async verifyLoginCode(loginToken, code) {
+        // 1. Verify the login token
+        let payload
+        try {
+            payload = jwt.verify(loginToken, LOGIN_TOKEN_SECRET)
+        } catch {
+            const err = new Error('Login session expired. Please log in again.')
+            err.status = 401
+            throw err
+        }
+
+        // 2. Verify the 2FA code
+        const codeHash = this._hashToken(code)
+        const record = await authRepo.findValidLoginCode(codeHash)
+        if (!record) {
+            const err = new Error('Invalid or expired verification code')
+            err.status = 401
+            throw err
+        }
+
+        // Ensure the code belongs to this user
+        if (record.userId !== payload.id) {
+            const err = new Error('Invalid verification code')
+            err.status = 401
+            throw err
+        }
+
+        // 3. Mark code as used
+        await authRepo.markLoginCodeUsed(codeHash)
+
+        // 4. Issue full auth tokens
+        const user = await authRepo.findUserById(payload.id)
+        if (!user) {
+            const err = new Error('User not found')
+            err.status = 401
+            throw err
+        }
+
+        return this._authResult(user)
     }
 
     // ── OAuth login / auto-register ──────────────────────────────────
     // Called after Passport has verified the OAuth profile and found/created
     // the user record. We just need to issue tokens.
+    // OAuth bypasses 2FA since the external provider already verifies identity.
 
     async oauthLogin(userInstance) {
         const fullUser = await authRepo.findUserById(userInstance.id)
@@ -112,10 +206,11 @@ class AuthService {
 
         await authRepo.createPasswordResetToken({ userId: user.id, tokenHash, expiresAt })
 
-        // In production, send rawToken via a transactional email service.
-        // For now we print it so the flow can be tested locally.
         const resetLink = `http://localhost:5173/reset-password?token=${rawToken}`
         console.log(`\n[PASSWORD RESET] Link for ${email}:\n${resetLink}\n`)
+
+        // Also send via email
+        await sendPasswordResetEmail(email, resetLink)
 
         return rawToken  // returned so integration tests can exercise the full flow
     }
@@ -140,6 +235,14 @@ class AuthService {
     }
 
     // ── Internals ────────────────────────────────────────────────────
+
+    /**
+     * Generate a random 6-digit login code (as string, zero-padded).
+     */
+    _generateLoginCode() {
+        const raw = crypto.randomInt(0, 1_000_000)
+        return String(raw).padStart(6, '0')
+    }
 
     /**
      * Build { user, token, refreshToken }.

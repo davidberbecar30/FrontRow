@@ -5,9 +5,7 @@ class AdminController {
 
     async getObservations(req, res, next) {
         try {
-            if (!req.user || req.user.role !== 'admin') {
-                return res.status(403).json({ error: 'Admin access required' })
-            }
+            // Authorization is handled by requirePermission('admin.observations') middleware
             const observations = await observationRepository.findAll()
             return res.status(200).json(observations)
         } catch (err) {
@@ -17,9 +15,7 @@ class AdminController {
 
     async getLogs(req, res, next) {
         try {
-            if (!req.user || req.user.role !== 'admin') {
-                return res.status(403).json({ error: 'Admin access required' })
-            }
+            // Authorization is handled by requirePermission('admin.logs') middleware
             const limit = Number(req.query.limit) || 100
             const logs = await logRepository.findRecent(limit)
             return res.status(200).json(logs)
@@ -30,9 +26,7 @@ class AdminController {
 
     async clearObservation(req, res, next) {
         try {
-            if (!req.user || req.user.role !== 'admin') {
-                return res.status(403).json({ error: 'Admin access required' })
-            }
+            // Authorization is handled by requireRole('admin') middleware
             const removed = await observationRepository.deleteById(req.params.id)
             if (!removed) return res.status(404).json({ error: 'Observation not found' })
             return res.status(200).json(removed)

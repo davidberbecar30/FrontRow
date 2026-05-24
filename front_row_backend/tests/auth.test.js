@@ -21,6 +21,32 @@ afterAll(async () => {
     await sequelize.close()
 })
 
+/**
+ * Helper: perform a full 2FA login (password + verification code) and return
+ * the full auth result { user, token, refreshToken }.
+ */
+async function fullLogin(email, password) {
+    // Step 1: password verification → get loginToken + code
+    const loginRes = await request(app)
+        .post('/auth/login')
+        .send({ email, password })
+    expect(loginRes.status).toBe(200)
+    expect(loginRes.body.requiresTwoFactor).toBe(true)
+    expect(loginRes.body.loginToken).toBeDefined()
+    expect(loginRes.body.code).toBeDefined()   // only available in test env
+
+    // Step 2: verify 2FA code
+    const verifyRes = await request(app)
+        .post('/auth/verify-login-code')
+        .send({ loginToken: loginRes.body.loginToken, code: loginRes.body.code })
+    expect(verifyRes.status).toBe(200)
+    expect(verifyRes.body.token).toBeDefined()
+    expect(verifyRes.body.refreshToken).toBeDefined()
+    expect(verifyRes.body.user).toBeDefined()
+
+    return verifyRes.body
+}
+
 // ──────────────────────────────────────────────────────────────────────
 // POST /auth/register
 // ──────────────────────────────────────────────────────────────────────
@@ -73,23 +99,25 @@ describe('POST /auth/register', () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// POST /auth/login
+// POST /auth/login (2FA flow)
 // ──────────────────────────────────────────────────────────────────────
 
-describe('POST /auth/login', () => {
+describe('POST /auth/login (2FA)', () => {
     beforeEach(async () => {
         await seedTestUser({ email: 'bob@example.com', password: 'mypassword' })
     })
 
-    it('returns user + JWT for valid credentials', async () => {
+    it('returns requiresTwoFactor flag and loginToken for valid credentials', async () => {
         const res = await request(app).post('/auth/login').send({
             email: 'bob@example.com',
             password: 'mypassword'
         })
         expect(res.status).toBe(200)
-        expect(res.body).toHaveProperty('token')
-        expect(res.body.user.email).toBe('bob@example.com')
-        expect(res.body.user).not.toHaveProperty('password')
+        expect(res.body.requiresTwoFactor).toBe(true)
+        expect(res.body.loginToken).toBeDefined()
+        expect(res.body.email).toBe('bob@example.com')
+        // The full token should NOT be returned at this stage
+        expect(res.body).not.toHaveProperty('token')
     })
 
     it('returns 401 for wrong password', async () => {
@@ -109,8 +137,64 @@ describe('POST /auth/login', () => {
         expect(res.status).toBe(401)
     })
 
-    it('returns 400 when email or password missing', async () => {
+    it('returns 401 when email or password missing (Passport validates before controller)', async () => {
         const res = await request(app).post('/auth/login').send({ email: 'bob@example.com' })
+        expect(res.status).toBe(401)
+    })
+})
+
+// ──────────────────────────────────────────────────────────────────────
+// POST /auth/verify-login-code (2FA Step 2)
+// ──────────────────────────────────────────────────────────────────────
+
+describe('POST /auth/verify-login-code', () => {
+    beforeEach(async () => {
+        await seedTestUser({ email: 'bob@example.com', password: 'mypassword' })
+    })
+
+    it('completes 2FA and returns full auth tokens for valid code', async () => {
+        const loginRes = await request(app).post('/auth/login').send({
+            email: 'bob@example.com', password: 'mypassword'
+        })
+        expect(loginRes.status).toBe(200)
+        expect(loginRes.body.code).toBeDefined()
+
+        const res = await request(app).post('/auth/verify-login-code').send({
+            loginToken: loginRes.body.loginToken,
+            code: loginRes.body.code
+        })
+        expect(res.status).toBe(200)
+        expect(res.body).toHaveProperty('token')
+        expect(res.body).toHaveProperty('refreshToken')
+        expect(res.body).toHaveProperty('user')
+        expect(res.body.user.email).toBe('bob@example.com')
+        expect(res.body.user).not.toHaveProperty('password')
+    })
+
+    it('rejects an invalid code with 401', async () => {
+        const loginRes = await request(app).post('/auth/login').send({
+            email: 'bob@example.com', password: 'mypassword'
+        })
+        expect(loginRes.status).toBe(200)
+
+        const res = await request(app).post('/auth/verify-login-code').send({
+            loginToken: loginRes.body.loginToken,
+            code: '999999'
+        })
+        expect(res.status).toBe(401)
+    })
+
+    it('rejects an expired loginToken with 401', async () => {
+        // Use a fake/expired login token
+        const res = await request(app).post('/auth/verify-login-code').send({
+            loginToken: 'invalid-token',
+            code: '123456'
+        })
+        expect(res.status).toBe(401)
+    })
+
+    it('rejects missing fields with 400', async () => {
+        const res = await request(app).post('/auth/verify-login-code').send({ loginToken: 'x' })
         expect(res.status).toBe(400)
     })
 })
@@ -127,10 +211,10 @@ describe('Protected endpoints', () => {
         await seedTestUser({ email: 'user@x.com', password: 'pw' })
         await seedTestUser({ email: 'admin@x.com', password: 'pw', role: 'admin' })
 
-        const userRes  = await request(app).post('/auth/login').send({ email: 'user@x.com',  password: 'pw' })
-        const adminRes = await request(app).post('/auth/login').send({ email: 'admin@x.com', password: 'pw' })
-        userToken  = userRes.body.token
-        adminToken = adminRes.body.token
+        const userResult  = await fullLogin('user@x.com',  'pw')
+        const adminResult = await fullLogin('admin@x.com', 'pw')
+        userToken  = userResult.token
+        adminToken = adminResult.token
     })
 
     it('POST /events without a token returns 401', async () => {
@@ -192,6 +276,8 @@ describe('Protected endpoints', () => {
     })
 
     it('authenticated requests get a refreshed token via X-New-Token header', async () => {
+        // Small delay so the new JWT gets a different `iat` timestamp
+        await new Promise(r => setTimeout(r, 1100))
         const res = await request(app)
             .get('/auth/me')
             .set('Authorization', `Bearer ${userToken}`)

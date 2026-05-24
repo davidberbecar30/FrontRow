@@ -30,12 +30,29 @@ class AuthController {
             if (!user) return res.status(401).json({ message: info?.message || 'Invalid credentials' })
 
             try {
-                const result = await authService.oauthLogin(user)
+                // Step 1: Passport already verified password → generate & send 2FA code
+                const result = await authService.sendTwoFactorCode(user)
                 return res.status(200).json(result)
             } catch (e) {
                 return next(e)
             }
         })(req, res, next)
+    }
+
+    // ── POST /auth/verify-login-code (2FA Step 2) ────────────────────
+    // Body: { loginToken, code }
+    async verifyLoginCode(req, res, next) {
+        try {
+            const { loginToken, code } = req.body
+            if (!loginToken || !code) {
+                return res.status(400).json({ error: 'loginToken and code are required' })
+            }
+
+            const result = await authService.verifyLoginCode(loginToken, code)
+            return res.status(200).json(result)
+        } catch (err) {
+            next(err)
+        }
     }
 
     // ── GET /auth/me ─────────────────────────────────────────────────

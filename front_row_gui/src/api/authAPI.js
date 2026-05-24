@@ -30,6 +30,13 @@ export async function register(userData) {
 
 export async function login(email, password) {
     return postJSON(`${BASE_URL}/login`, { email, password })
+    // Returns { requiresTwoFactor: true, loginToken, email } on step 1
+    // or { user, token, refreshToken } for OAuth/legacy flows
+}
+
+/** Verify the 6-digit 2FA code sent to the user's email. */
+export async function verifyLoginCode(loginToken, code) {
+    return postJSON(`${BASE_URL}/verify-login-code`, { loginToken, code })
     // returns { user, token, refreshToken }
 }
 
