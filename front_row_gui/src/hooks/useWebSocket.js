@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 
-// Derive WebSocket URL from current page — works from any machine on LAN
+// Use VITE_WS_URL if set (production), otherwise derive from current page (local dev)
 function wsUrl() {
+    if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     return `${protocol}//${window.location.host}/ws`
 }

@@ -206,7 +206,8 @@ class AuthService {
 
         await authRepo.createPasswordResetToken({ userId: user.id, tokenHash, expiresAt })
 
-        const resetLink = `http://localhost:5173/reset-password?token=${rawToken}`
+        const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
+        const resetLink = `${CLIENT_URL}/reset-password?token=${rawToken}`
         console.log(`\n[PASSWORD RESET] Link for ${email}:\n${resetLink}\n`)
 
         // Also send via email
