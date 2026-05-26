@@ -173,15 +173,16 @@ class AuthController {
     // GET /auth/google/callback — Google redirects here after user consents
     googleCallback(req, res, next) {
         passport.authenticate('google', { session: false }, async (err, user, info) => {
-            if (err)   return next(err)
-            if (!user) return res.status(401).json({ message: info?.message || 'Google authentication failed' })
-
+            const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
+            if (err || !user) {
+                return res.redirect(`${CLIENT_URL}/login?error=google_failed`)
+            }
             try {
                 const result = await authService.oauthLogin(user)
-                // Production: redirect to frontend with tokens. API mode: return JSON.
-                return res.status(200).json(result)
+                const session = Buffer.from(JSON.stringify(result)).toString('base64url')
+                return res.redirect(`${CLIENT_URL}/oauth-callback?session=${session}`)
             } catch (e) {
-                return next(e)
+                return res.redirect(`${CLIENT_URL}/login?error=google_failed`)
             }
         })(req, res, next)
     }
@@ -202,14 +203,16 @@ class AuthController {
     // GET /auth/github/callback — GitHub redirects here after user consents
     githubCallback(req, res, next) {
         passport.authenticate('github', { session: false }, async (err, user, info) => {
-            if (err)   return next(err)
-            if (!user) return res.status(401).json({ message: info?.message || 'GitHub authentication failed' })
-
+            const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
+            if (err || !user) {
+                return res.redirect(`${CLIENT_URL}/login?error=github_failed`)
+            }
             try {
                 const result = await authService.oauthLogin(user)
-                return res.status(200).json(result)
+                const session = Buffer.from(JSON.stringify(result)).toString('base64url')
+                return res.redirect(`${CLIENT_URL}/oauth-callback?session=${session}`)
             } catch (e) {
-                return next(e)
+                return res.redirect(`${CLIENT_URL}/login?error=github_failed`)
             }
         })(req, res, next)
     }

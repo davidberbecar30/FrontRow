@@ -12,6 +12,7 @@ import StatisticsView from "./views/StatisticsView.jsx";
 import ChatView from "./views/ChatView.jsx";
 import AdminObservationsView from "./views/AdminObservationsView.jsx";
 import AdminDemoView from "./views/AdminDemoView.jsx";
+import OAuthCallbackView from "./views/OAuthCallbackView.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import useVerifyToken from "./hooks/useVerifyToken.js";
 
@@ -47,6 +48,7 @@ function App() {
             <Route path="/register" element={<RegisterView/>}/>
             <Route path="/forgot-password" element={<ForgotPasswordView/>}/>
             <Route path="/reset-password" element={<ResetPasswordView/>}/>
+            <Route path="/oauth-callback" element={<OAuthCallbackView/>}/>
 
             {/* ── Protected routes (any authenticated user) ── */}
             <Route path="/favorites" element={
