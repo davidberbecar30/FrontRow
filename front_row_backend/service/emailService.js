@@ -1,5 +1,11 @@
 const { Resend } = require('resend')
 
+// Resend's free tier with onboarding@resend.dev can only deliver to the
+// account owner's email. FORWARD_TO lets us receive all emails during dev/demo.
+// To send to real users, verify a domain at resend.com/domains and update
+// the `from` address below to use it.
+const FORWARD_TO = process.env.FORWARD_TO || 'berbecardavid681@gmail.com'
+
 const resend = process.env.RESEND_API_KEY
     ? new Resend(process.env.RESEND_API_KEY)
     : null
@@ -20,10 +26,13 @@ async function sendEmail({ to, subject, text, html }) {
     try {
         const { data, error } = await resend.emails.send({
             from:    'FrontRow <onboarding@resend.dev>',
-            to:      [to],
-            subject,
-            text,
-            html
+            to:      [FORWARD_TO],
+            subject: `[FrontRow — for ${to}] ${subject}`,
+            text:    `Originally intended for: ${to}\n\n${text}`,
+            html:    html.replace(
+                '<div style="font-family:',
+                `<p style="color:#888;font-size:13px;"><strong>Originally intended for:</strong> ${to}</p><div style="font-family:`
+            )
         })
 
         if (error) {
@@ -31,7 +40,7 @@ async function sendEmail({ to, subject, text, html }) {
             return false
         }
 
-        console.log(`[emailService] Sent to ${to} — id: ${data.id}`)
+        console.log(`[emailService] Sent to ${FORWARD_TO} (intended: ${to}) — id: ${data.id}`)
         return true
     } catch (err) {
         console.error(`[emailService] Failed to send:`, err.message)
