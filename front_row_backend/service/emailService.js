@@ -1,7 +1,5 @@
 const { Resend } = require('resend')
 
-const FORWARD_TO = process.env.FORWARD_TO || 'berbecardavid681@gmail.com'
-
 const resend = process.env.RESEND_API_KEY
     ? new Resend(process.env.RESEND_API_KEY)
     : null
@@ -11,7 +9,7 @@ async function sendEmail({ to, subject, text, html }) {
     if (!resend) {
         console.log(`\n┌─────────────────────────────────────────────`)
         console.log(`│ 📧 EMAIL (not sent — no RESEND_API_KEY)`)
-        console.log(`│ Intended for: ${to}`)
+        console.log(`│ To: ${to}`)
         console.log(`│ Subject: ${subject}`)
         console.log(`│ ───────────────────────────────────────────`)
         console.log(`│ ${text.replace(/\n/g, '\n│ ')}`)
@@ -20,19 +18,12 @@ async function sendEmail({ to, subject, text, html }) {
     }
 
     try {
-        const forwardedSubject = `[FrontRow — for ${to}] ${subject}`
-        const forwardedText    = `Originally intended for: ${to}\n\n${text}`
-        const forwardedHtml    = html.replace(
-            '<div style="font-family:',
-            `<p style="color:#888;font-size:13px;"><strong>Originally intended for:</strong> ${to}</p><div style="font-family:`
-        )
-
         const { data, error } = await resend.emails.send({
             from:    'FrontRow <onboarding@resend.dev>',
-            to:      [FORWARD_TO],
-            subject: forwardedSubject,
-            text:    forwardedText,
-            html:    forwardedHtml
+            to:      [to],
+            subject,
+            text,
+            html
         })
 
         if (error) {
@@ -40,7 +31,7 @@ async function sendEmail({ to, subject, text, html }) {
             return false
         }
 
-        console.log(`[emailService] Sent to ${FORWARD_TO} (intended: ${to}) — id: ${data.id}`)
+        console.log(`[emailService] Sent to ${to} — id: ${data.id}`)
         return true
     } catch (err) {
         console.error(`[emailService] Failed to send:`, err.message)

@@ -39,6 +39,22 @@ class AuthController {
         })(req, res, next)
     }
 
+    // ── POST /auth/verify-register-code (Register Step 2) ───────────
+    // Body: { registrationToken, code }
+    async verifyRegisterCode(req, res, next) {
+        try {
+            const { registrationToken, code } = req.body
+            if (!registrationToken || !code) {
+                return res.status(400).json({ error: 'registrationToken and code are required' })
+            }
+
+            const result = await authService.verifyRegisterCode(registrationToken, code)
+            return res.status(201).json(result)
+        } catch (err) {
+            next(err)
+        }
+    }
+
     // ── POST /auth/verify-login-code (2FA Step 2) ────────────────────
     // Body: { loginToken, code }
     async verifyLoginCode(req, res, next) {

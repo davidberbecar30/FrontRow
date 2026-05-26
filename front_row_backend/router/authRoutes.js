@@ -4,9 +4,10 @@ const ctrl    = require('../controller/authController')
 const { requireAuth } = require('../middleware/authenticate')
 
 // ── Strategy 1: Local auth ───────────────────────────────────────────────────
-router.post('/register',           ctrl.register.bind(ctrl))
-router.post('/login',              ctrl.login.bind(ctrl))
-router.post('/verify-login-code',  ctrl.verifyLoginCode.bind(ctrl))
+router.post('/register',              ctrl.register.bind(ctrl))
+router.post('/verify-register-code', ctrl.verifyRegisterCode.bind(ctrl))
+router.post('/login',                ctrl.login.bind(ctrl))
+router.post('/verify-login-code',    ctrl.verifyLoginCode.bind(ctrl))
 router.get('/me',                  requireAuth, ctrl.me.bind(ctrl))
 
 // ── Session management ───────────────────────────────────────────────────────

@@ -18,7 +18,7 @@ class AuthService {
 
     constructor() {}
 
-    // ── Register ─────────────────────────────────────────────────────
+    // ── Register (Step 1: send verification code, do NOT create user yet) ──
 
     async register(userInput) {
         const existingEmail = await authRepo.findUserByEmail(userInput.email)
@@ -28,6 +28,75 @@ class AuthService {
             throw err
         }
 
+        // Hash password now so it isn't stored in plain text inside the token
+        const hashedPassword = await bcrypt.hash(userInput.password, 10)
+
+        // Generate verification code and embed everything in a short-lived JWT.
+        // The user is NOT written to the DB until the code is verified.
+        const code     = this._generateLoginCode()
+        const codeHash = this._hashToken(code)
+
+        const registrationToken = jwt.sign(
+            {
+                type: 'register',
+                codeHash,
+                pendingUser: {
+                    firstName:      userInput.firstName,
+                    lastName:       userInput.lastName,
+                    email:          userInput.email,
+                    hashedPassword,
+                    dateOfBirth:    userInput.dateOfBirth
+                }
+            },
+            LOGIN_TOKEN_SECRET,
+            { expiresIn: LOGIN_TOKEN_TTL_SECONDS }
+        )
+
+        await sendLoginCode(userInput.email, code)
+        console.log(`\n[REGISTER CODE] ${code} for ${userInput.email}\n`)
+
+        const result = { requiresTwoFactor: true, registrationToken, email: userInput.email }
+        if (process.env.NODE_ENV === 'test') result.code = code
+        return result
+    }
+
+    // ── Register (Step 2: verify code → create user → return session) ──
+
+    async verifyRegisterCode(registrationToken, code) {
+        // 1. Decode and validate the registration token
+        let payload
+        try {
+            payload = jwt.verify(registrationToken, LOGIN_TOKEN_SECRET)
+        } catch {
+            const err = new Error('Registration session expired. Please register again.')
+            err.status = 401
+            throw err
+        }
+
+        if (payload.type !== 'register') {
+            const err = new Error('Invalid registration token')
+            err.status = 400
+            throw err
+        }
+
+        // 2. Check the code
+        const codeHash = this._hashToken(code)
+        if (codeHash !== payload.codeHash) {
+            const err = new Error('Invalid or expired verification code')
+            err.status = 401
+            throw err
+        }
+
+        // 3. Guard against race condition — email registered between step 1 and 2
+        const { pendingUser } = payload
+        const existing = await authRepo.findUserByEmail(pendingUser.email)
+        if (existing) {
+            const err = new Error('Email already registered')
+            err.status = 409
+            throw err
+        }
+
+        // 4. Look up the default role
         const defaultRole = await authRepo.findRoleByName(DEFAULT_ROLE)
         if (!defaultRole) {
             const err = new Error(`Default role "${DEFAULT_ROLE}" missing — seed it first`)
@@ -35,19 +104,18 @@ class AuthService {
             throw err
         }
 
-        const hashedPassword = await bcrypt.hash(userInput.password, 10)
+        // 5. Create the user now that the email is verified
         const created = await authRepo.createUser({
-            firstName:   userInput.firstName,
-            lastName:    userInput.lastName,
-            email:       userInput.email,
-            dateOfBirth: userInput.dateOfBirth,
-            password:    hashedPassword,
+            firstName:   pendingUser.firstName,
+            lastName:    pendingUser.lastName,
+            email:       pendingUser.email,
+            dateOfBirth: pendingUser.dateOfBirth,
+            password:    pendingUser.hashedPassword,
             roleId:      defaultRole.id
         })
 
         const fullUser = await authRepo.findUserById(created.id)
-        // Send a verification code — same flow as login 2FA
-        return this.sendTwoFactorCode(fullUser)
+        return this._authResult(fullUser)
     }
 
     // ── Local login (Step 1: password verification → sends 2FA code) ─

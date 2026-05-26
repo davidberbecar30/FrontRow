@@ -2,7 +2,7 @@ import styles from './RegisterView.module.css'
 import logo from '../assets/logo.svg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { register, verifyLoginCode } from '../api/authAPI'
+import { register, verifyRegisterCode } from '../api/authAPI'
 import { setSession } from '../auth/currentUser'
 
 function RegisterView() {
@@ -20,7 +20,7 @@ function RegisterView() {
 
     // ── Step 2: email verification ───────────────────────────────────
     const [step, setStep] = useState('form') // 'form' | 'code'
-    const [loginToken, setLoginToken] = useState('')
+    const [registrationToken, setRegistrationToken] = useState('')
     const [code, setCode] = useState('')
     const [codeError, setCodeError] = useState('')
     const [codeLoading, setCodeLoading] = useState(false)
@@ -51,7 +51,7 @@ function RegisterView() {
             })
             // Backend now returns { requiresTwoFactor: true, loginToken, email }
             if (result.requiresTwoFactor) {
-                setLoginToken(result.loginToken)
+                setRegistrationToken(result.registrationToken)
                 setStep('code')
             } else {
                 // Fallback: if somehow a session is returned directly
@@ -73,7 +73,7 @@ function RegisterView() {
         }
         setCodeLoading(true)
         try {
-            const result = await verifyLoginCode(loginToken, code)
+            const result = await verifyRegisterCode(registrationToken, code)
             setSession({ user: result.user, token: result.token, refreshToken: result.refreshToken })
             navigate('/events')
         } catch (err) {

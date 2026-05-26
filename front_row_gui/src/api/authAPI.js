@@ -35,9 +35,15 @@ export async function login(email, password) {
     // or { user, token, refreshToken } for OAuth/legacy flows
 }
 
-/** Verify the 6-digit 2FA code sent to the user's email. */
+/** Verify the 6-digit 2FA code sent to the user's email at login. */
 export async function verifyLoginCode(loginToken, code) {
     return postJSON(`${BASE_URL}/verify-login-code`, { loginToken, code })
+    // returns { user, token, refreshToken }
+}
+
+/** Verify the 6-digit code from the registration email and create the account. */
+export async function verifyRegisterCode(registrationToken, code) {
+    return postJSON(`${BASE_URL}/verify-register-code`, { registrationToken, code })
     // returns { user, token, refreshToken }
 }
 
