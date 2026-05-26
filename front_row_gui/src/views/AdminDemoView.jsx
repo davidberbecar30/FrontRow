@@ -43,7 +43,7 @@ function ActionBtn({ onClick, disabled, loading, color = '#6C5CE7', children }) 
                 transition: 'opacity 0.2s', opacity: disabled || loading ? 0.6 : 1
             }}
         >
-            {loading ? '⏳ Working…' : children}
+            {loading ? ' Working…' : children}
         </button>
     )
 }
@@ -169,7 +169,7 @@ export default function AdminDemoView() {
 
             <div style={{ maxWidth: 860, margin: '0 auto', padding: '2rem' }}>
 
-                <h2 style={{ color: '#fff', marginBottom: '0.25rem' }}>🛡 Admin Demo Panel</h2>
+                <h2 style={{ color: '#fff', marginBottom: '0.25rem' }}> Admin Demo Panel</h2>
                 <p style={{ color: '#9988BB', marginBottom: '2rem', fontSize: 13 }}>
                     Controls for the Gold Challenge presentation — seed data, run stats, demonstrate the cache.
                 </p>
@@ -223,16 +223,16 @@ export default function AdminDemoView() {
                 >
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
                         <ActionBtn onClick={handleNaive} loading={naiveLoading} color="#FF7675">
-                            🐢 Run Naive
+                             Run Naive
                         </ActionBtn>
                         <ActionBtn onClick={handleOpt} loading={optLoading} color="#00B894">
-                            ⚡ Run Optimised
+                             Run Optimised
                         </ActionBtn>
                         <ActionBtn onClick={handleBothSequential} loading={naiveLoading || optLoading} color="#6C5CE7">
-                            🔄 Run Both
+                             Run Both
                         </ActionBtn>
                         <ActionBtn onClick={handleClearCache} loading={cacheClearing} color="#636E72">
-                            🗑 Clear Cache
+                             Clear Cache
                         </ActionBtn>
                     </div>
 
@@ -262,7 +262,7 @@ export default function AdminDemoView() {
                             background: '#00B89422', borderRadius: 8,
                             display: 'flex', alignItems: 'center', gap: 12
                         }}>
-                            <span style={{ fontSize: 28 }}>🚀</span>
+                            <span style={{ fontSize: 28 }}></span>
                             <span style={{ color: '#00B894', fontWeight: 800, fontSize: 22 }}>
                                 {speedup}×
                             </span>
@@ -314,7 +314,7 @@ export default function AdminDemoView() {
                             disabled={!fakerRunning}
                             color="#FF7675"
                         >
-                            ⏹ Stop Loop
+                             Stop Loop
                         </ActionBtn>
                         {fakerRunning && <Badge label="● RUNNING" color="#00B894" />}
                         {fakerMsg && (
@@ -330,7 +330,7 @@ export default function AdminDemoView() {
                     accent="#E17055"
                 >
                     <ActionBtn onClick={handleSimulate} loading={simLoading} color="#E17055">
-                        🤖 Run All Scenarios
+                         Run All Scenarios
                     </ActionBtn>
 
                     {simError && (
@@ -342,7 +342,7 @@ export default function AdminDemoView() {
 
                             {/* Rate spike */}
                             <SimRow
-                                icon="📈"
+                                icon=""
                                 label="Rate Spike"
                                 status={simResult.rateSpike?.triggered ? 'triggered' : 'not triggered'}
                                 detail={simResult.rateSpike?.reason}
@@ -367,7 +367,7 @@ export default function AdminDemoView() {
                             {simResult.toxicChat?.map((m, i) => (
                                 <SimRow
                                     key={i}
-                                    icon="💬"
+                                    icon=""
                                     label={`"${m.text}"`}
                                     status={m.label === 'unavailable' ? 'HF unavailable' : m.blocked ? 'blocked' : 'allowed'}
                                     detail={m.score !== null ? `${m.label} — ${m.score}% confidence` : null}
@@ -377,7 +377,7 @@ export default function AdminDemoView() {
                             ))}
 
                             <p style={{ color: '#9988BB', fontSize: 12, marginTop: 4 }}>
-                                Open 👁 Observations and refresh in ~5 s to see AI-generated narratives.
+                                Open Observations and refresh in ~5 s to see AI-generated narratives.
                             </p>
                         </div>
                     )}

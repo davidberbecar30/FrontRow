@@ -10,7 +10,6 @@ LoginCode.init(
             autoIncrement: true,
             primaryKey: true
         },
-        // SHA-256 hash of the 6-digit code (never store the raw code)
         codeHash: {
             type: DataTypes.STRING(64),
             allowNull: false

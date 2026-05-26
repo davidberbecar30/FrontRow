@@ -14,7 +14,7 @@ console.log('2. associations loaded')
 
 const { initWebSocket } = require('./websocket/wsServer')
 
-const PORT = 3000
+const PORT = process.env.PORT || 3000
 const HOST = '0.0.0.0'
 
 // ── Build HTTPS server if certs exist, otherwise fall back to HTTP ──

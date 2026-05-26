@@ -1,14 +1,3 @@
-/**
- * Silver Auth Tests
- * Covers:
- *   - Permissions embedded in JWT
- *   - Refresh token rotation
- *   - Logout / session revocation
- *   - Password recovery flow (forgot → reset)
- *   - requirePermission middleware
- *   - Moderator role access
- *   - OAuth endpoints (503 when not configured)
- */
 
 const request = require('supertest')
 const jwt     = require('jsonwebtoken')
@@ -31,9 +20,6 @@ afterAll(async () => {
     await sequelize.close()
 })
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 1. Permissions embedded in JWT
-// ──────────────────────────────────────────────────────────────────────────────
 
 describe('JWT contains permissions array', () => {
     it('user token includes only events.favorite', async () => {
@@ -69,9 +55,6 @@ describe('JWT contains permissions array', () => {
     })
 })
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 2. Refresh token rotation
-// ──────────────────────────────────────────────────────────────────────────────
 
 describe('POST /auth/refresh', () => {
     let firstRefreshToken, firstAccessToken
@@ -111,9 +94,6 @@ describe('POST /auth/refresh', () => {
     })
 })
 
-// ──────────────────────────────────────────────────────────────────────────────
-// 3. Logout / session revocation
-// ──────────────────────────────────────────────────────────────────────────────
 
 describe('POST /auth/logout', () => {
     let accessToken, refreshToken

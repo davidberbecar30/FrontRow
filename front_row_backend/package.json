@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "NODE_ENV=test jest --coverage --runInBand",
     "dev": "nodemon server.js",
     "lint": "eslint ."

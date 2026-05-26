@@ -66,7 +66,7 @@ function Header() {
                                     fontWeight: 700, fontSize: 13, cursor: 'pointer'
                                 }}
                             >
-                                🎬 Demo Panel
+                                 Demo Panel
                             </button>
                             <button onClick={() => navigate('/admin/observations')}>👁 Observations</button>
                         </>
