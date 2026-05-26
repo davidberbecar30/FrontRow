@@ -172,7 +172,7 @@ export async function toggleFavorite(id) {
     }
     try {
         const response = await apiFetch(`${BASE_URL}/${id}/favorite`, {
-            method: 'POST'
+            method: 'PATCH'
         })
         if (!response.ok) throw new Error('Failed to toggle favorite')
         return response.json()

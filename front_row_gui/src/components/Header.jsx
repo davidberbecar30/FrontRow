@@ -15,6 +15,7 @@ function Header() {
 
     const navigate = useNavigate()
     const [user, setUser] = useState(getCurrentUser())
+    const [sidebarOpen, setSidebarOpen] = useState(false)
 
     useEffect(() => {
         const handler = () => setUser(getCurrentUser())
@@ -24,7 +25,13 @@ function Header() {
 
     function handleLogout() {
         clearCurrentUser()
+        setSidebarOpen(false)
         navigate('/login')
+    }
+
+    function nav(path) {
+        setSidebarOpen(false)
+        navigate(path)
     }
 
     const canCreateEvents = hasPermission('events.create')
@@ -42,8 +49,8 @@ function Header() {
                     <button className={styles.iconBtn} onClick={() => navigate('/favorites')}>
                         <img src={favoriteIcon} alt="Favorites" className={styles.icon} />
                     </button>
-                    <button className={styles.iconBtn}>
-                        <img src={bidIcon} alt="Bid" className={styles.icon} onClick={() => navigate('/statistics')}/>
+                    <button className={styles.iconBtn} onClick={() => navigate('/statistics')}>
+                        <img src={bidIcon} alt="Statistics" className={styles.icon} />
                     </button>
 
                     {canCreateEvents && (
@@ -52,33 +59,16 @@ function Header() {
                         </button>
                     )}
 
-                    <button className={styles.iconBtn}>
-                        <img src={menuIcon} alt="Menu" className={styles.icon} />
-                    </button>
-
-                    {admin && (
-                        <>
-                            <button
-                                onClick={() => navigate('/admin/demo')}
-                                style={{
-                                    background: '#6C5CE7', color: '#fff', border: 'none',
-                                    borderRadius: 8, padding: '0.4rem 0.9rem',
-                                    fontWeight: 700, fontSize: 13, cursor: 'pointer'
-                                }}
-                            >
-                                 Demo Panel
-                            </button>
-                            <button onClick={() => navigate('/admin/observations')}>👁 Observations</button>
-                        </>
+                    {user && (
+                        <button className={styles.iconBtn} onClick={() => navigate('/chat')}>
+                            <img src={chatIcon} alt="Chat" className={styles.icon} />
+                        </button>
                     )}
 
                     {user ? (
                         <>
-                            <button className={styles.iconBtn} onClick={() => navigate('/chat')}>
-                                <img src={chatIcon} alt="Chat" className={styles.icon} />
-                            </button>
-                            <span style={{ color: 'white', marginLeft: '1rem' }}>
-                                Hi, {user.firstName} ({user.role?.name})
+                            <span style={{ color: 'white', marginLeft: '0.5rem', fontSize: 14 }}>
+                                Hi, {user.firstName}
                             </span>
                             <button className={styles.iconBtn} onClick={handleLogout}>
                                 <img src={logoutIcon} alt="Logout" className={styles.icon} />
@@ -86,11 +76,82 @@ function Header() {
                         </>
                     ) : (
                         <>
-                            <button onClick={() => navigate('/login')}>Login</button>
-                            <button onClick={() => navigate('/register')}>Register</button>
+                            <button onClick={() => navigate('/login')} className={styles.textBtn}>Login</button>
+                            <button onClick={() => navigate('/register')} className={styles.textBtn}>Register</button>
                         </>
                     )}
+
+                    <button className={styles.iconBtn} onClick={() => setSidebarOpen(true)}>
+                        <img src={menuIcon} alt="Menu" className={styles.icon} />
+                    </button>
                 </div>
+            </div>
+
+            {/* ── Sidebar overlay ── */}
+            {sidebarOpen && (
+                <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />
+            )}
+
+            {/* ── Sidebar panel ── */}
+            <div className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+                <div className={styles.sidebarHeader}>
+                    <span className={styles.sidebarTitle}>Menu</span>
+                    <button className={styles.closeBtn} onClick={() => setSidebarOpen(false)}>✕</button>
+                </div>
+
+                <nav className={styles.sidebarNav}>
+                    <button className={styles.sidebarItem} onClick={() => nav('/events')}>
+                        🎟️ Events
+                    </button>
+                    <button className={styles.sidebarItem} onClick={() => nav('/statistics')}>
+                        📊 Statistics
+                    </button>
+                    {user && (
+                        <button className={styles.sidebarItem} onClick={() => nav('/favorites')}>
+                            ❤️ Favorites
+                        </button>
+                    )}
+                    {user && (
+                        <button className={styles.sidebarItem} onClick={() => nav('/chat')}>
+                            💬 Chat
+                        </button>
+                    )}
+                    {canCreateEvents && (
+                        <button className={styles.sidebarItem} onClick={() => nav('/events/add')}>
+                            ➕ Add Event
+                        </button>
+                    )}
+
+                    {admin && (
+                        <>
+                            <div className={styles.sidebarDivider} />
+                            <p className={styles.sidebarSection}>Admin</p>
+                            <button className={styles.sidebarItem} onClick={() => nav('/admin/observations')}>
+                                👁 Observations
+                            </button>
+                            <button className={styles.sidebarItem} onClick={() => nav('/admin/demo')}>
+                                🎛 Demo Panel
+                            </button>
+                        </>
+                    )}
+
+                    <div className={styles.sidebarDivider} />
+
+                    {user ? (
+                        <button className={styles.sidebarItem} onClick={handleLogout}>
+                            🚪 Logout
+                        </button>
+                    ) : (
+                        <>
+                            <button className={styles.sidebarItem} onClick={() => nav('/login')}>
+                                🔐 Login
+                            </button>
+                            <button className={styles.sidebarItem} onClick={() => nav('/register')}>
+                                📝 Register
+                            </button>
+                        </>
+                    )}
+                </nav>
             </div>
         </>
     )
