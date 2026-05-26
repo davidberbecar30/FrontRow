@@ -7,7 +7,8 @@ import { useState, useEffect } from 'react'
 import { getToken, setCurrentUser, clearCurrentUser, getCurrentUser } from '../auth/currentUser'
 
 // Import from authAPI directly to avoid the global 401 redirect in apiFetch
-const BASE_URL = '/auth'
+const API_BASE = import.meta.env.VITE_API_URL || ''
+const BASE_URL = `${API_BASE}/auth`
 
 export function useVerifyToken() {
     const [state, setState] = useState({
