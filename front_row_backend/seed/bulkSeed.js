@@ -1,15 +1,3 @@
-/**
- * bulkSeed.js — fills the DB with large-scale realistic data for performance testing.
- *
- * Targets:
- *   events       →  1 000 rows
- *   event_dates  →  3 000 rows  (~3 per event)
- *   tickets      → 10 000 rows  (~10 per event)
- *
- * Usage:
- *   node seed/bulkSeed.js          (run directly)
- *   POST /faker/bulk-seed          (via HTTP)
- */
 
 const { faker } = require('@faker-js/faker')
 const { Event, EventDate, Ticket } = require('../model/associations')
@@ -48,7 +36,7 @@ async function runBulkSeed({ events = 1000 } = {}) {
     const start = Date.now()
     console.log(`[BulkSeed] Starting — target: ${events} events…`)
 
-    // ── 1. Events ────────────────────────────────────────────────────────────
+
     const eventRows = []
     for (let i = 0; i < events; i++) {
         const category = faker.helpers.arrayElement(CATEGORIES)
