@@ -101,24 +101,24 @@ function Header() {
 
                 <nav className={styles.sidebarNav}>
                     <button className={styles.sidebarItem} onClick={() => nav('/events')}>
-                        🎟️ Events
+                        Events
                     </button>
                     <button className={styles.sidebarItem} onClick={() => nav('/statistics')}>
-                        📊 Statistics
+                        Statistics
                     </button>
                     {user && (
                         <button className={styles.sidebarItem} onClick={() => nav('/favorites')}>
-                            ❤️ Favorites
+                            Favorites
                         </button>
                     )}
                     {user && (
                         <button className={styles.sidebarItem} onClick={() => nav('/chat')}>
-                            💬 Chat
+                            Chat
                         </button>
                     )}
                     {canCreateEvents && (
                         <button className={styles.sidebarItem} onClick={() => nav('/events/add')}>
-                            ➕ Add Event
+                            Add Event
                         </button>
                     )}
 
@@ -127,10 +127,10 @@ function Header() {
                             <div className={styles.sidebarDivider} />
                             <p className={styles.sidebarSection}>Admin</p>
                             <button className={styles.sidebarItem} onClick={() => nav('/admin/observations')}>
-                                👁 Observations
+                                Observations
                             </button>
                             <button className={styles.sidebarItem} onClick={() => nav('/admin/demo')}>
-                                🎛 Demo Panel
+                                Demo Panel
                             </button>
                         </>
                     )}
@@ -139,15 +139,15 @@ function Header() {
 
                     {user ? (
                         <button className={styles.sidebarItem} onClick={handleLogout}>
-                            🚪 Logout
+                            Logout
                         </button>
                     ) : (
                         <>
                             <button className={styles.sidebarItem} onClick={() => nav('/login')}>
-                                🔐 Login
+                                Login
                             </button>
                             <button className={styles.sidebarItem} onClick={() => nav('/register')}>
-                                📝 Register
+                                Register
                             </button>
                         </>
                     )}
