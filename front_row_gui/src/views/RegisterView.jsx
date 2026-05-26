@@ -2,7 +2,7 @@ import styles from './RegisterView.module.css'
 import logo from '../assets/logo.svg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { register } from '../api/authAPI'
+import { register, verifyLoginCode } from '../api/authAPI'
 import { setSession } from '../auth/currentUser'
 
 function RegisterView() {
@@ -17,6 +17,13 @@ function RegisterView() {
     const [errors, setErrors] = useState({})
     const [serverError, setServerError] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // ── Step 2: email verification ───────────────────────────────────
+    const [step, setStep] = useState('form') // 'form' | 'code'
+    const [loginToken, setLoginToken] = useState('')
+    const [code, setCode] = useState('')
+    const [codeError, setCodeError] = useState('')
+    const [codeLoading, setCodeLoading] = useState(false)
 
     async function handleSubmit() {
         setServerError('')
@@ -35,15 +42,22 @@ function RegisterView() {
         setErrors({})
         setLoading(true)
         try {
-            const { user, token } = await register({
+            const result = await register({
                 firstName:   form.firstName,
                 lastName:    form.lastName,
                 email:       form.email,
                 password:    form.password,
                 dateOfBirth: form.dob
             })
-            setSession({ user, token })
-            navigate('/events')
+            // Backend now returns { requiresTwoFactor: true, loginToken, email }
+            if (result.requiresTwoFactor) {
+                setLoginToken(result.loginToken)
+                setStep('code')
+            } else {
+                // Fallback: if somehow a session is returned directly
+                setSession({ user: result.user, token: result.token, refreshToken: result.refreshToken })
+                navigate('/events')
+            }
         } catch (err) {
             setServerError(err.message || 'Registration failed')
         } finally {
@@ -51,6 +65,78 @@ function RegisterView() {
         }
     }
 
+    async function handleVerifyCode() {
+        setCodeError('')
+        if (!code.trim() || code.length !== 6 || !/^\d{6}$/.test(code)) {
+            setCodeError('Enter a valid 6-digit code')
+            return
+        }
+        setCodeLoading(true)
+        try {
+            const result = await verifyLoginCode(loginToken, code)
+            setSession({ user: result.user, token: result.token, refreshToken: result.refreshToken })
+            navigate('/events')
+        } catch (err) {
+            setCodeError(err.message || 'Invalid or expired code')
+        } finally {
+            setCodeLoading(false)
+        }
+    }
+
+    // ── Code verification step ───────────────────────────────────────
+    if (step === 'code') {
+        return (
+            <div className={styles.page}>
+                <div className={styles.card}>
+
+                    <div className={styles.logoWrapper}>
+                        <img src={logo} alt="FrontRow logo" className={styles.logo} />
+                        <h1 className={styles.brandName}>FrontRow</h1>
+                    </div>
+
+                    <h2 className={styles.title}>VERIFY YOUR EMAIL</h2>
+
+                    <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, textAlign: 'center', maxWidth: 320, marginBottom: 8 }}>
+                        A 6-digit verification code has been sent to <strong>{form.email}</strong>.
+                        Check your inbox (and spam folder).
+                    </p>
+
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>Verification Code</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            placeholder="000000"
+                            value={code}
+                            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            onKeyDown={e => e.key === 'Enter' && handleVerifyCode()}
+                            autoFocus
+                        />
+                        {codeError && <span className={styles.error}>{codeError}</span>}
+                    </div>
+
+                    <button
+                        className={styles.registerBtn}
+                        onClick={handleVerifyCode}
+                        disabled={codeLoading}
+                    >
+                        {codeLoading ? 'Verifying...' : 'Verify Code'}
+                    </button>
+
+                    <p className={styles.loginText}>
+                        <span className={styles.loginLink} onClick={() => setStep('form')} style={{ cursor: 'pointer' }}>
+                            Back to Register
+                        </span>
+                    </p>
+
+                </div>
+            </div>
+        )
+    }
+
+    // ── Registration form step ───────────────────────────────────────
     return (
         <div className={styles.page}>
             <div className={styles.card}>

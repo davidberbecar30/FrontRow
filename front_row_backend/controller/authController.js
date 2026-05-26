@@ -16,8 +16,8 @@ class AuthController {
                 firstName, lastName, email, password, dateOfBirth
             })
 
-            // result = { user, token, refreshToken }
-            return res.status(201).json(result)
+            // result = { requiresTwoFactor: true, loginToken, email }
+            return res.status(200).json(result)
         } catch (err) {
             next(err)
         }

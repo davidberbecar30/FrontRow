@@ -46,7 +46,8 @@ class AuthService {
         })
 
         const fullUser = await authRepo.findUserById(created.id)
-        return this._authResult(fullUser)
+        // Send a verification code — same flow as login 2FA
+        return this.sendTwoFactorCode(fullUser)
     }
 
     // ── Local login (Step 1: password verification → sends 2FA code) ─
