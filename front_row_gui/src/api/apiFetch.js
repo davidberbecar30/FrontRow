@@ -6,7 +6,10 @@ import { getToken, setToken, clearCurrentUser } from '../auth/currentUser'
 //   3. On 401, clears the session — the next route check will redirect to /login.
 //   4. Bumps the inactivity timer so active API usage keeps the session alive.
 
+const API_BASE = import.meta.env.VITE_API_URL || ''
+
 export async function apiFetch(url, options = {}) {
+    url = `${API_BASE}${url}`
     const token = getToken()
     const headers = {
         'Content-Type': 'application/json',

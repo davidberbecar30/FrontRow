@@ -2,7 +2,8 @@
 //   - Login/register run *before* we have a token to attach.
 //   - We don't want the global 401-redirect on a wrong-password login.
 
-const BASE_URL = '/auth'
+const API_BASE = import.meta.env.VITE_API_URL || ''
+const BASE_URL = `${API_BASE}/auth`
 
 async function postJSON(url, body, token) {
     const headers = { 'Content-Type': 'application/json' }
