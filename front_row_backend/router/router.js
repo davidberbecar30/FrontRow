@@ -6,15 +6,21 @@ const { requireAuth } = require('../middleware/authenticate')
 const { requireRole, requirePermission } = require('../middleware/authorize')
 
 // ── Public reads ─────────────────────────────────────────────────────────────
-router.get('/',           controller.getAllEvents)
-router.get('/statistics', controller.getStatistics)
-router.get('/:id',        controller.getEventById)
+router.get('/',            controller.getAllEvents)
+router.get('/statistics',  controller.getStatistics)
+router.get('/my-tickets',  requireAuth, controller.getMyTickets)
+router.get('/:id',         controller.getEventById)
 
 // ── Authenticated: favorite toggle ───────────────────────────────────────────
-// Any logged-in user with the events.favorite permission (user + above)
 router.patch('/:id/favorite',
     requireAuth, requirePermission('events.favorite'),
     controller.toggleFavorite
+)
+
+// ── Authenticated: purchase tickets ─────────────────────────────────────────
+router.post('/:id/purchase',
+    requireAuth,
+    controller.purchaseTickets
 )
 
 // ── Admin / Moderator writes ──────────────────────────────────────────────────

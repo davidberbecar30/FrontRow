@@ -8,7 +8,8 @@ import {
     getTicketStatsByEventId,
     addTicket,
     updateTicket,
-    deleteTicket
+    deleteTicket,
+    purchaseTickets
 } from '../api/eventsAPI.js'
 import Header from '../components/Header.jsx'
 import styles from './DetailView.module.css'
@@ -21,6 +22,7 @@ function DetailView() {
     const [quantities, setQuantities] = useState([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [buyMessage, setBuyMessage] = useState(null) // { type: 'success'|'error', text }
 
     // ─── Ticket state ──────────────────────────────────────
     const [tickets, setTickets] = useState([])
@@ -130,6 +132,18 @@ function DetailView() {
         }
     }
 
+    async function handleBuy(index) {
+        setBuyMessage(null)
+        try {
+            const qty = quantities[index]
+            const result = await purchaseTickets(id, qty)
+            setEvent(prev => ({ ...prev, availableTickets: result.availableTickets }))
+            setBuyMessage({ type: 'success', text: `${qty} ticket${qty > 1 ? 's' : ''} purchased successfully!` })
+        } catch (err) {
+            setBuyMessage({ type: 'error', text: err.message || 'Purchase failed' })
+        }
+    }
+
     function startEdit(ticket) {
         setEditingTicket(ticket)
         setTicketForm({
@@ -205,10 +219,24 @@ function DetailView() {
                                         Total{'\n'}${event.price * quantities[index]}
                                     </p>
                                 </div>
-                                <button className={styles.buyBtn}>BUY NOW!</button>
+                                <button className={styles.buyBtn} onClick={() => handleBuy(index)}>BUY NOW!</button>
                             </div>
                         ))}
                     </div>
+
+                    {buyMessage && (
+                        <p style={{
+                            marginTop: 12,
+                            padding: '10px 16px',
+                            borderRadius: 8,
+                            background: buyMessage.type === 'success' ? '#e6f9ee' : '#ffeaea',
+                            color:      buyMessage.type === 'success' ? '#1a7a3a' : '#c0392b',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 14
+                        }}>
+                            {buyMessage.text}
+                        </p>
+                    )}
                 </div>
             </div>
 

@@ -13,14 +13,13 @@ import ChatView from "./views/ChatView.jsx";
 import AdminObservationsView from "./views/AdminObservationsView.jsx";
 import AdminDemoView from "./views/AdminDemoView.jsx";
 import OAuthCallbackView from "./views/OAuthCallbackView.jsx";
+import MyTicketsView from "./views/MyTicketsView.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import useVerifyToken from "./hooks/useVerifyToken.js";
 
 function App() {
-    // Verify stored token on every full page load / refresh
     const { verifying } = useVerifyToken()
 
-    // While we're checking, show nothing (avoids flash of login page)
     if (verifying) {
         return (
             <div style={{
@@ -53,6 +52,9 @@ function App() {
             {/* ── Protected routes (any authenticated user) ── */}
             <Route path="/favorites" element={
                 <ProtectedRoute><FavoritesView /></ProtectedRoute>
+            }/>
+            <Route path="/my-tickets" element={
+                <ProtectedRoute><MyTicketsView /></ProtectedRoute>
             }/>
             <Route path="/chat" element={
                 <ProtectedRoute><ChatView /></ProtectedRoute>

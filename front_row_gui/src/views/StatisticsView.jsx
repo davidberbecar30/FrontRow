@@ -11,10 +11,13 @@ ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels, CategoryScale, Li
 
 const COLORS = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
 
+const TICKETS_PER_PAGE = 5
+
 function StatisticsView() {
     const [stats, setStats] = useState(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [ticketsPage, setTicketsPage] = useState(0)
 
     const loadStats = useCallback(async () => {
         try {
@@ -187,7 +190,9 @@ function StatisticsView() {
                         <p className={styles.cardTitle}>Tickets still available</p>
                         <p className={styles.cardSubtitle}>How many seats are left</p>
                         <div className={styles.ticketsList}>
-                            {stats.ticketsAvailability.map((event, index) => (
+                            {stats.ticketsAvailability
+                                .slice(ticketsPage * TICKETS_PER_PAGE, (ticketsPage + 1) * TICKETS_PER_PAGE)
+                                .map((event, index) => (
                                 <div key={event.id} className={styles.ticketRow}>
                                     <span className={styles.ticketName}>
                                         {event.title.length > 18 ? event.title.slice(0, 18) + '...' : event.title}
@@ -197,7 +202,7 @@ function StatisticsView() {
                                             className={styles.ticketBarFill}
                                             style={{
                                                 width: `${(event.availableTickets / maxTickets) * 100}%`,
-                                                background: COLORS[index % COLORS.length]
+                                                background: COLORS[(ticketsPage * TICKETS_PER_PAGE + index) % COLORS.length]
                                             }}
                                         />
                                     </div>
@@ -205,6 +210,27 @@ function StatisticsView() {
                                 </div>
                             ))}
                         </div>
+                        {stats.ticketsAvailability.length > TICKETS_PER_PAGE && (
+                            <div className={styles.ticketsPagination}>
+                                <button
+                                    className={styles.pageBtn}
+                                    onClick={() => setTicketsPage(p => p - 1)}
+                                    disabled={ticketsPage === 0}
+                                >
+                                    &lsaquo;
+                                </button>
+                                <span className={styles.pageInfo}>
+                                    {ticketsPage + 1} / {Math.ceil(stats.ticketsAvailability.length / TICKETS_PER_PAGE)}
+                                </span>
+                                <button
+                                    className={styles.pageBtn}
+                                    onClick={() => setTicketsPage(p => p + 1)}
+                                    disabled={(ticketsPage + 1) * TICKETS_PER_PAGE >= stats.ticketsAvailability.length}
+                                >
+                                    &rsaquo;
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-const{ Event,EventDate } =require("../model/associations.js")
+const { Event, EventDate, Purchase } = require("../model/associations.js")
 const {Op,fn,col}=require("sequelize")
 
 const withDates={include:[{association:"dates"}]}
@@ -101,6 +101,37 @@ class EventRepository{
         return Event.findAll({
             attributes: ['id', 'title', 'availableTickets'],
             raw: true
+        })
+    }
+
+    async purchaseTickets(eventId, userId, quantity) {
+        const event = await Event.findByPk(eventId)
+        if (!event) return null
+        if (event.availableTickets < quantity) {
+            const err = new Error('Not enough tickets available')
+            err.status = 400
+            throw err
+        }
+        event.availableTickets -= quantity
+        await event.save()
+        const purchase = await Purchase.create({
+            userId,
+            eventId,
+            quantity,
+            unitPrice: event.price
+        })
+        return { purchase, availableTickets: event.availableTickets }
+    }
+
+    async getMyTickets(userId) {
+        return Purchase.findAll({
+            where: { userId },
+            include: [{
+                model: Event,
+                as: 'event',
+                include: [{ association: 'dates' }]
+            }],
+            order: [['createdAt', 'DESC']]
         })
     }
 

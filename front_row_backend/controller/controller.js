@@ -90,6 +90,31 @@ class EventController {
         }
     }
 
+    async purchaseTickets(req, res, next) {
+        try {
+            const eventId  = Number(req.params.id)
+            const userId   = req.user.id
+            const quantity = Number(req.body.quantity)
+            if (!quantity || quantity < 1) {
+                return res.status(400).json({ error: 'quantity must be at least 1' })
+            }
+            const result = await service.purchaseTickets(eventId, userId, quantity)
+            if (!result) return res.status(404).json({ error: 'Event not found' })
+            return res.status(201).json(result)
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    async getMyTickets(req, res, next) {
+        try {
+            const purchases = await service.getMyTickets(req.user.id)
+            return res.status(200).json(purchases)
+        } catch (err) {
+            next(err)
+        }
+    }
+
     async getStatistics(req, res, next) {
         try {
             return res.status(200).json(await service.getStatistics())

@@ -274,3 +274,21 @@ export async function getGlobalTicketStats() {
     if (!response.ok) throw new Error('Failed to fetch global ticket stats')
     return response.json()
 }
+
+export async function purchaseTickets(eventId, quantity) {
+    const response = await apiFetch(`${BASE_URL}/${eventId}/purchase`, {
+        method: 'POST',
+        body: JSON.stringify({ quantity })
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Purchase failed')
+    }
+    return response.json()
+}
+
+export async function getMyTickets() {
+    const response = await apiFetch(`${BASE_URL}/my-tickets`)
+    if (!response.ok) throw new Error('Failed to fetch your tickets')
+    return response.json()
+}

@@ -70,13 +70,12 @@ async function optionalAuth(req, res, next) {
         res.setHeader('X-New-Token', fresh)
         res.setHeader('Access-Control-Expose-Headers', 'X-New-Token')
     } catch {
-        // Expired or tampered — silently ignore. Protected routes will 401 via requireAuth.
+        //protected routes will 401 via requireAuth.
     }
     next()
 }
 
-// ── Middleware: required auth ────────────────────────────────────
-// Use on protected endpoints. Sends 401 if optionalAuth didn't populate req.user.
+
 function requireAuth(req, res, next) {
     if (!req.user) {
         return res.status(401).json({ error: 'Authentication required' })

@@ -44,6 +44,14 @@ class EventService {
         return repository.toggleFavorite(id)
     }
 
+    async purchaseTickets(eventId, userId, quantity) {
+        return repository.purchaseTickets(eventId, userId, quantity)
+    }
+
+    async getMyTickets(userId) {
+        return repository.getMyTickets(userId)
+    }
+
     async getStatistics() {
         const [totalEvents, categoryBreakdown, trending, ticketsAvailability] =
             await Promise.all([

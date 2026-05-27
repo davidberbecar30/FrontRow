@@ -46,22 +46,9 @@ function Header() {
                     <h1 style={{ color: 'white' }}>FrontRow</h1>
                 </div>
                 <div className={styles.headerIcons}>
-                    <button className={styles.iconBtn} onClick={() => navigate('/favorites')}>
-                        <img src={favoriteIcon} alt="Favorites" className={styles.icon} />
-                    </button>
-                    <button className={styles.iconBtn} onClick={() => navigate('/statistics')}>
-                        <img src={bidIcon} alt="Statistics" className={styles.icon} />
-                    </button>
-
-                    {canCreateEvents && (
-                        <button className={styles.iconBtn} onClick={() => navigate('/events/add')}>
-                            <img src={addIcon} alt="Add" className={styles.icon} />
-                        </button>
-                    )}
-
                     {user && (
-                        <button className={styles.iconBtn} onClick={() => navigate('/chat')}>
-                            <img src={chatIcon} alt="Chat" className={styles.icon} />
+                        <button className={styles.iconBtn} onClick={() => navigate('/favorites')}>
+                            <img src={favoriteIcon} alt="Favorites" className={styles.icon} />
                         </button>
                     )}
 
@@ -109,6 +96,11 @@ function Header() {
                     {user && (
                         <button className={styles.sidebarItem} onClick={() => nav('/favorites')}>
                             Favorites
+                        </button>
+                    )}
+                    {user && (
+                        <button className={styles.sidebarItem} onClick={() => nav('/my-tickets')}>
+                            My Tickets
                         </button>
                     )}
                     {user && (
