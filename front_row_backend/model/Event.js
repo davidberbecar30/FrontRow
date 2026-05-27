@@ -57,7 +57,7 @@ Event.init(
         validate:{min:0}
     },
     image:{
-        type:DataTypes.STRING,
+        type:DataTypes.TEXT,
         allowNull:true
     },
     favorited:{

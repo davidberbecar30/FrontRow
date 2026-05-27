@@ -14,6 +14,8 @@ function MasterView() {
     const navigate = useNavigate()
     const [search, setSearch] = useState('')
     const [location, setLocation] = useState('')
+    const [dateFrom, setDateFrom] = useState('')
+    const [dateTo, setDateTo] = useState('')
     const [activeCategory, setActiveCategory] = useState('🔥 Hype')
     const [events, setEvents] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
@@ -26,37 +28,24 @@ function MasterView() {
     // ─── Prefetch cache ────────────────────────────────────
     const prefetchCache = useRef({})
 
+    const filters = { search, location, dateFrom, dateTo }
+    const filterKey = `${search}|${location}|${dateFrom}|${dateTo}`
+
     // ─── Fetch a specific page ─────────────────────────────
-    async function fetchPage(page, search) {
-        // check cache first
-        const cacheKey = `${page}-${search}`
-        if (prefetchCache.current[cacheKey]) {
-            console.log(`Cache hit for page ${page}`)
-            return prefetchCache.current[cacheKey]
-        }
-
-        const data = await getEvents({
-            page,
-            limit: ITEMS_PER_PAGE,
-            search,
-        })
-
-        // save to cache
+    async function fetchPage(page, f) {
+        const cacheKey = `${page}-${f.search}|${f.location}|${f.dateFrom}|${f.dateTo}`
+        if (prefetchCache.current[cacheKey]) return prefetchCache.current[cacheKey]
+        const data = await getEvents({ page, limit: ITEMS_PER_PAGE, ...f })
         prefetchCache.current[cacheKey] = data
         return data
     }
 
     // ─── Prefetch next page in background ─────────────────
-    async function prefetchPage(page, search) {
-        const cacheKey = `${page}-${search}`
-        if (prefetchCache.current[cacheKey]) return // already cached
-        console.log(`Prefetching page ${page}`)
+    async function prefetchPage(page, f) {
+        const cacheKey = `${page}-${f.search}|${f.location}|${f.dateFrom}|${f.dateTo}`
+        if (prefetchCache.current[cacheKey]) return
         try {
-            const data = await getEvents({
-                page,
-                limit: ITEMS_PER_PAGE,
-                search,
-            })
+            const data = await getEvents({ page, limit: ITEMS_PER_PAGE, ...f })
             prefetchCache.current[cacheKey] = data
         } catch (err) {
             console.error('Prefetch failed:', err)
@@ -69,51 +58,41 @@ function MasterView() {
             setLoading(true)
             setEvents([])
             setCurrentPage(1)
-            prefetchCache.current = {} // clear cache on search change
+            prefetchCache.current = {}
 
-            const data = await fetchPage(1, search)
+            const data = await fetchPage(1, filters)
             setEvents(data.data)
             setTotalPages(data.pagination.totalPages)
             setHasMore(data.pagination.totalPages > 1)
 
-            // prefetch page 2 in background
-            if (data.pagination.totalPages > 1) {
-                prefetchPage(2, search)
-            }
+            if (data.pagination.totalPages > 1) prefetchPage(2, filters)
         } catch (err) {
             setError(err.message || 'Failed to load events')
         } finally {
             setLoading(false)
         }
-    }, [search])
+    }, [filterKey])
 
     // ─── Load next page (append) ───────────────────────────
     const loadNextPage = useCallback(async () => {
         if (loading || !hasMore) return
 
         const nextPage = currentPage + 1
-        if (nextPage > totalPages) {
-            setHasMore(false)
-            return
-        }
+        if (nextPage > totalPages) { setHasMore(false); return }
 
         try {
             setLoading(true)
-            const data = await fetchPage(nextPage, search)
-            setEvents(prev => [...prev, ...data.data]) // 👈 append not replace
+            const data = await fetchPage(nextPage, filters)
+            setEvents(prev => [...prev, ...data.data])
             setCurrentPage(nextPage)
             setHasMore(nextPage < data.pagination.totalPages)
-
-            // prefetch the page after next
-            if (nextPage + 1 <= data.pagination.totalPages) {
-                prefetchPage(nextPage + 1, search)
-            }
+            if (nextPage + 1 <= data.pagination.totalPages) prefetchPage(nextPage + 1, filters)
         } catch (err) {
             setError(err.message || 'Failed to load more events')
         } finally {
             setLoading(false)
         }
-    }, [loading, hasMore, currentPage, totalPages, search])
+    }, [loading, hasMore, currentPage, totalPages, filterKey])
 
     // ─── Scroll detection ──────────────────────────────────
     useEffect(() => {
@@ -156,10 +135,12 @@ function MasterView() {
             <FilterComponent
                 location={location}
                 onLocationChange={setLocation}
+                dateFrom={dateFrom}
+                onDateFromChange={setDateFrom}
+                dateTo={dateTo}
+                onDateToChange={setDateTo}
                 search={search}
-                onSearchChange={(val) => {
-                    setSearch(val)
-                }}
+                onSearchChange={setSearch}
             />
 
             {error && <p style={{ textAlign: 'center', color: '#FF7675' }}>{error}</p>}

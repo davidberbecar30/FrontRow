@@ -7,22 +7,30 @@ class EventRepository{
 
     constructor(){}
 
-    async getAllEvents({ page = 1, limit = 4, category, search }={}){
-        const where={}
-        if (category) {
-            where.category=category
-        }
-        if(search){
-            where.title={[Op.iLike]:`%${search}%`}
-        }
+    async getAllEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo } = {}) {
+        const where = {}
+        if (category) where.category = category
+        if (search)   where.title = { [Op.iLike]: `%${search}%` }
+
+        const dateWhere = {}
+        if (location) dateWhere.location = { [Op.iLike]: `%${location}%` }
+        if (dateFrom && dateTo)  dateWhere.date = { [Op.between]: [dateFrom, dateTo] }
+        else if (dateFrom)       dateWhere.date = { [Op.gte]: dateFrom }
+        else if (dateTo)         dateWhere.date = { [Op.lte]: dateTo }
+
+        const hasDateFilter = location || dateFrom || dateTo
 
         return Event.findAndCountAll({
             where,
-            ...withDates,
+            include: [{
+                association: 'dates',
+                where:    hasDateFilter ? dateWhere : undefined,
+                required: !!hasDateFilter
+            }],
             limit,
-            offset: (page-1)*limit,
-            order:[['id','ASC']],
-            distinct: true 
+            offset: (page - 1) * limit,
+            order:  [['id', 'ASC']],
+            distinct: true
         })
     }
 

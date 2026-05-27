@@ -13,7 +13,7 @@
 
 .filterFrame {
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -21,10 +21,10 @@
     flex-wrap: wrap;
 }
 
-.locationFrame, .datesFrame, .searchFrame {
+.filterBox {
     box-sizing: border-box;
     position: relative;
-    width: 280px;
+    min-width: 260px;
     height: 83px;
     background: #FFFFFF;
     border: 2.55px solid #FF7675;
@@ -32,18 +32,20 @@
     display: flex;
     align-items: center;
     padding-left: 10px;
+    flex: 1;
+    max-width: 340px;
 }
 
-.locationIcon, .datesIcon, .searchIcon {
-    width: 40px;
-    height: 40px;
+.iconWrap {
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 }
 
-.locationIcon img, .datesIcon img, .searchIcon img {
+.iconWrap img {
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -54,25 +56,80 @@
     flex-direction: column;
     margin-left: 10px;
     flex: 1;
+    min-width: 0;
+    padding-right: 8px;
 }
 
-.locationLabel, .datesLabel, .searchLabel {
+.filterLabel {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
     color: #000000;
-    margin: 0;
+    margin: 0 0 4px 0;
 }
 
-.locationInput, .datesInput, .searchInput {
+.filterInput {
     font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.48);
+    color: rgba(0, 0, 0, 0.7);
     border: none;
     outline: none;
     background: transparent;
     width: 100%;
+}
+
+.filterInput::placeholder {
+    color: rgba(0, 0, 0, 0.38);
+}
+
+/* ── Date range ── */
+
+.dateRange {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.dateField {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+}
+
+.dateSubLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(0,0,0,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dateInput {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.7);
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    padding: 0;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.dateSep {
+    width: 1px;
+    height: 28px;
+    background: rgba(0,0,0,0.12);
+    flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
@@ -80,8 +137,8 @@
         flex-direction: column;
         align-items: center;
     }
-    .locationFrame, .datesFrame, .searchFrame {
+    .filterBox {
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
     }
 }

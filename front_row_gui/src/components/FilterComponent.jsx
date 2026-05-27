@@ -1,50 +1,76 @@
 import styles from './FilterComponent.module.css'
-import calendarSGV from '../assets/calendar_month_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
-import searchSVG from '../assets/search_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
-import locationSVG from '../assets/location_on_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
-function FilterComponent({ location, onLocationChange, search, onSearchChange }) {
+import calendarSVG  from '../assets/calendar_month_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
+import searchSVG    from '../assets/search_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
+import locationSVG  from '../assets/location_on_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg'
+
+function FilterComponent({
+    location, onLocationChange,
+    dateFrom, onDateFromChange,
+    dateTo,   onDateToChange,
+    search,   onSearchChange
+}) {
     return (
         <div className={styles.filterDiv}>
             <div className={styles.filterFrame}>
 
-                <div className={styles.locationFrame}>
-                    <div className={styles.locationIcon}>
-                        <img src={locationSVG}></img>
+                {/* Location */}
+                <div className={styles.filterBox}>
+                    <div className={styles.iconWrap}>
+                        <img src={locationSVG} alt="Location" />
                     </div>
                     <div className={styles.contentWrapper}>
-                        <p className={styles.locationLabel}>Location</p>
+                        <p className={styles.filterLabel}>Location</p>
                         <input
-                            className={styles.locationInput}
+                            className={styles.filterInput}
                             type="text"
-                            placeholder="Country, City, Zip Code"
+                            placeholder="City, Country, Zip Code"
                             value={location}
                             onChange={e => onLocationChange(e.target.value)}
                         />
                     </div>
                 </div>
 
-                <div className={styles.datesFrame}>
-                    <div className={styles.datesIcon}>
-                        <img src={calendarSGV}></img>
+                {/* Date range */}
+                <div className={styles.filterBox}>
+                    <div className={styles.iconWrap}>
+                        <img src={calendarSVG} alt="Dates" />
                     </div>
                     <div className={styles.contentWrapper}>
-                        <p className={styles.datesLabel}>Dates</p>
-                        <input
-                            className={styles.datesInput}
-                            type="date"
-                            placeholder="All dates"
-                        />
+                        <p className={styles.filterLabel}>Dates</p>
+                        <div className={styles.dateRange}>
+                            <div className={styles.dateField}>
+                                <span className={styles.dateSubLabel}>From</span>
+                                <input
+                                    className={styles.dateInput}
+                                    type="date"
+                                    value={dateFrom}
+                                    onChange={e => onDateFromChange(e.target.value)}
+                                />
+                            </div>
+                            <div className={styles.dateSep} />
+                            <div className={styles.dateField}>
+                                <span className={styles.dateSubLabel}>To</span>
+                                <input
+                                    className={styles.dateInput}
+                                    type="date"
+                                    value={dateTo}
+                                    min={dateFrom || undefined}
+                                    onChange={e => onDateToChange(e.target.value)}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className={styles.searchFrame}>
-                    <div className={styles.searchIcon}>
-                        <img src={searchSVG}></img>
+                {/* Search */}
+                <div className={styles.filterBox}>
+                    <div className={styles.iconWrap}>
+                        <img src={searchSVG} alt="Search" />
                     </div>
                     <div className={styles.contentWrapper}>
-                        <p className={styles.searchLabel}>Search</p>
+                        <p className={styles.filterLabel}>Search</p>
                         <input
-                            className={styles.searchInput}
+                            className={styles.filterInput}
                             type="text"
                             placeholder="Artist, Event, Category"
                             value={search}
