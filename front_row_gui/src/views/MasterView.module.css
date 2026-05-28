@@ -250,10 +250,44 @@
 
 @media (max-width: 600px) {
     .pickedTitle {
-        font-size: 24px;
+        font-size: 20px;
     }
     .pickedSection {
-        padding: 16px 12px 20px;
+        margin: 12px 10px;
+        padding: 14px 10px 16px;
+    }
+    .vibeMatchBadge {
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+    .categoryPills {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+    .pill, .pillActive {
+        font-size: 12px;
+        padding: 0 10px;
+    }
+    .pickedCards {
+        gap: 12px;
+    }
+    .pickedCard {
+        height: 80px;
+        padding: 0 10px;
+        gap: 10px;
+    }
+    .pickedCardImg {
+        width: 50px;
+        height: 50px;
+    }
+    .pickedCardTitle {
+        font-size: 12px;
+    }
+    .pickedCardPrice {
+        font-size: 12px;
+    }
+    .cardsSection {
+        padding: 16px 10px;
     }
 }
 /* PAGINATION */

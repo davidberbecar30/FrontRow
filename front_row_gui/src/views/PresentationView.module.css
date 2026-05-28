@@ -142,3 +142,93 @@
     color: #FFFFFF;
     transition: all 0.2s ease;
 }
+
+/* ── Mobile layout ── */
+@media (max-width: 768px) {
+    /* Let the page grow and scroll instead of clipping at 100vh */
+    .page {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Images become a full-width strip at the top */
+    .frame5 {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        left: unset;
+        top: unset;
+        flex-shrink: 0;
+    }
+
+    .frame5 img {
+        width: 50%;
+        height: 200px;
+    }
+
+    /* Content panel fills the rest, flows naturally below the images */
+    .frame6 {
+        position: relative;
+        width: 100%;
+        left: unset;
+        top: unset;
+        height: auto;
+        padding: 28px 24px 44px;
+        justify-content: flex-start;
+        gap: 0;
+    }
+
+    .logo {
+        width: 80px;
+    }
+
+    .FR {
+        font-size: 44px;
+    }
+
+    .logoText {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .tagline {
+        font-size: 17px;
+        line-height: 160%;
+        margin-bottom: 10px;
+    }
+
+    .description {
+        font-size: 14px;
+        line-height: 170%;
+        margin-bottom: 14px;
+    }
+
+    .getStarted {
+        font-size: 18px;
+        line-height: 160%;
+        margin-bottom: 12px;
+    }
+
+    .browseBtn {
+        width: 100%;
+        max-width: 280px;
+        font-size: 18px;
+        height: 50px;
+        margin-bottom: 18px;
+    }
+
+    .authRow {
+        gap: 12px;
+    }
+
+    .authBtn {
+        flex: 1;
+        max-width: 140px;
+        font-size: 16px;
+        height: 44px;
+    }
+}

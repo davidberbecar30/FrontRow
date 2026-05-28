@@ -27,7 +27,13 @@
 
 @media (max-width: 600px) {
     .title {
-        font-size: 32px;
+        font-size: 26px;
+    }
+    .content {
+        padding: 14px 12px;
+    }
+    .cardsGrid {
+        grid-template-columns: 1fr;
     }
 }
 

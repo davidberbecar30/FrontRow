@@ -56,6 +56,25 @@
     }
 }
 
+@media (max-width: 600px) {
+    .content {
+        padding: 12px 12px;
+    }
+    .whatsHappening {
+        font-size: 22px;
+    }
+    .description {
+        font-size: 13px;
+        margin-bottom: 14px;
+    }
+    .card {
+        padding: 12px 12px;
+    }
+    .pieDiv, .barDiv {
+        height: 240px;
+    }
+}
+
 .cardTitle {
     font-family: 'Arial', sans-serif;
     font-weight: 700;

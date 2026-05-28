@@ -142,3 +142,32 @@
         max-width: 420px;
     }
 }
+
+@media (max-width: 480px) {
+    .filterDiv {
+        padding: 12px 10px;
+        min-height: unset;
+    }
+    .filterBox {
+        min-width: 0;
+        max-width: 100%;
+        height: 70px;
+        padding-left: 8px;
+    }
+    .iconWrap {
+        width: 28px;
+        height: 28px;
+    }
+    .contentWrapper {
+        margin-left: 6px;
+    }
+    .filterLabel {
+        font-size: 11px;
+    }
+    .filterInput {
+        font-size: 13px;
+    }
+    .dateInput {
+        font-size: 12px;
+    }
+}

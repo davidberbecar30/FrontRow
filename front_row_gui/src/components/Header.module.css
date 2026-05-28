@@ -168,22 +168,33 @@
 
 @media (max-width: 600px) {
     .header {
-        flex-direction: column;
-        gap: 10px;
-        padding: 15px 20px;
+        /* Keep as a single row — never stack logo above icons */
+        flex-direction: row;
+        min-height: 60px;
+        padding: 0 12px;
+        gap: 0;
     }
 
     .logoImg {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
     }
 
     .header h1 {
-        font-size: 20px;
+        font-size: 18px;
+    }
+
+    .headerIcons {
+        gap: 4px;
     }
 
     .icon {
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .textBtn {
+        font-size: 12px;
+        padding: 3px 8px;
     }
 }

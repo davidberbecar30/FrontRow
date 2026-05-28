@@ -18,7 +18,7 @@
     }
     .gallery {
         width: 100% !important;
-        height: 300px !important;
+        height: 280px !important;
     }
     .title {
         font-size: 32px !important;
@@ -29,11 +29,70 @@
     .details {
         padding: 20px !important;
     }
+    .ticketsSection {
+        margin: 16px 20px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .gallery {
+        height: 220px !important;
+    }
+    .title {
+        font-size: 22px !important;
+    }
+    .description {
+        font-size: 15px !important;
+    }
+    .details {
+        padding: 16px !important;
+    }
+    /* Event detail rows: reduce font and padding so all cells fit on one row */
     .eventDetailRow {
-        flex-direction: column !important;
         height: auto !important;
-        padding: 15px !important;
-        gap: 10px !important;
+        min-height: 72px !important;
+        padding: 8px !important;
+        gap: 4px !important;
+        border-radius: 14px !important;
+    }
+    .detailCell {
+        padding: 6px 4px !important;
+        gap: 4px !important;
+    }
+    .detailText {
+        font-size: 10px !important;
+        line-height: 160% !important;
+    }
+    .quantityBtn {
+        font-size: 14px !important;
+    }
+    .quantityNum {
+        font-size: 12px !important;
+    }
+    .totalText {
+        font-size: 10px !important;
+    }
+    .buyBtn {
+        font-size: 11px !important;
+        padding: 8px 6px !important;
+        width: 72px !important;
+    }
+    /* Tickets section */
+    .ticketsSection {
+        margin: 12px 0 !important;
+        border-radius: 0 !important;
+        padding: 20px 16px !important;
+    }
+    .ticketsTitle {
+        font-size: 18px !important;
+    }
+    /* Dates gap */
+    .datesFrame {
+        gap: 16px !important;
+    }
+    /* Admin action buttons */
+    .adminActions {
+        margin-bottom: 16px !important;
     }
 }
 
