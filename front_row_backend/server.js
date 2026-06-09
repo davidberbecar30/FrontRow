@@ -114,6 +114,35 @@ async function backfillEventDateTickets() {
     console.log('6c. Synced all event_dates availableTickets from ticket rows')
 }
 
+// Replace placeholder/missing images with curated Unsplash photos per category.
+async function backfillEventImages() {
+    const { Event } = require('./model/associations')
+    const { CATEGORY_IMAGES } = require('./faker/eventGenerator')
+
+    // Find events with null, empty, or placeholder images (loremflickr / picsum / placeholder)
+    const events = await Event.findAll({ attributes: ['id', 'category', 'image'] })
+    let updated = 0
+
+    for (const event of events) {
+        const img = event.image || ''
+        const isPlaceholder = !img ||
+            img.includes('loremflickr') ||
+            img.includes('picsum') ||
+            img.includes('placeholder') ||
+            img.includes('via.placeholder') ||
+            img.includes('faker')
+
+        if (isPlaceholder) {
+            const pool = CATEGORY_IMAGES[event.category] || CATEGORY_IMAGES.Concert
+            // Pick deterministically by event id so images don't shuffle on every restart
+            const image = pool[event.id % pool.length]
+            await Event.update({ image }, { where: { id: event.id } })
+            updated++
+        }
+    }
+    if (updated > 0) console.log(`6d. Updated images for ${updated} events`)
+}
+
 async function start() {
     try {
         console.log('3. about to authenticate')
@@ -148,6 +177,9 @@ async function start() {
 
         await backfillEventDateTickets()
         console.log('6c. event_dates availableTickets backfilled')
+
+        await backfillEventImages()
+        console.log('6d. event images backfilled')
 
         await connectMongo()
         console.log('7. mongo connected')
