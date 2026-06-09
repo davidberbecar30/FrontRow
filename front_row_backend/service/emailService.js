@@ -1,53 +1,98 @@
-const nodemailer = require('nodemailer')
+const https = require('https')
 
-// Gmail SMTP transporter — uses the App Password from .env
-// (Generate one at: myaccount.google.com → Security → App passwords)
-let _transporter = null
+/**
+ * emailService.js — Brevo (formerly Sendinblue) HTTP API
+ *
+ * Uses HTTPS (port 443) instead of SMTP, so it works on all cloud
+ * platforms (Render, Railway, Heroku, etc.) that block outbound SMTP.
+ *
+ * Required env vars:
+ *   BREVO_API_KEY      — from brevo.com → SMTP & API → API Keys
+ *   BREVO_SENDER_EMAIL — verified sender address on Brevo
+ */
 
-function getTransporter() {
-    if (_transporter) return _transporter
+function brevoRequest(body) {
+    const apiKey = process.env.BREVO_API_KEY
+    const payload = JSON.stringify(body)
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(
+            {
+                hostname: 'api.brevo.com',
+                path:     '/v3/smtp/email',
+                method:   'POST',
+                headers: {
+                    'accept':         'application/json',
+                    'api-key':        apiKey,
+                    'content-type':   'application/json',
+                    'content-length': Buffer.byteLength(payload)
+                },
+                timeout: 12_000
+            },
+            (res) => {
+                let data = ''
+                res.on('data', chunk => { data += chunk })
+                res.on('end', () => {
+                    if (res.statusCode >= 200 && res.statusCode < 300) {
+                        resolve(JSON.parse(data || '{}'))
+                    } else {
+                        reject(new Error(`Brevo error ${res.statusCode}: ${data}`))
+                    }
+                })
+            }
+        )
+        req.on('error',   reject)
+        req.on('timeout', () => { req.destroy(); reject(new Error('Brevo request timed out')) })
+        req.write(payload)
+        req.end()
+    })
+}
+
+// Gmail fallback for local dev (Nodemailer)
+let _gmailTransporter = null
+function getGmailTransporter() {
+    if (_gmailTransporter) return _gmailTransporter
     const user = process.env.GMAIL_EMAIL
     const pass = process.env.GMAIL_PASSWORD
     if (!user || !pass) return null
-
-    _transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
+    const nodemailer = require('nodemailer')
+    _gmailTransporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com', port: 587, secure: false,
         auth: { user, pass },
-        connectionTimeout: 8_000,   // fail fast if Gmail is unreachable
-        greetingTimeout:   8_000,
-        socketTimeout:     10_000
+        connectionTimeout: 8_000, greetingTimeout: 8_000, socketTimeout: 10_000
     })
-    return _transporter
+    return _gmailTransporter
 }
 
-const EMAIL_TIMEOUT_MS = 12_000   // hard cap — login must not hang longer than this
-
 async function sendEmail({ to, subject, text, html }) {
-    const transporter = getTransporter()
+    const brevoKey    = process.env.BREVO_API_KEY
+    const brevoSender = process.env.BREVO_SENDER_EMAIL
 
-    if (!transporter) {
-        console.log(`\n[EMAIL — no credentials] To: ${to} | Subject: ${subject}`)
-        console.log(text)
+    // ── Production: Brevo HTTPS API ──────────────────────────────────────────
+    if (brevoKey && brevoSender) {
+        const result = await brevoRequest({
+            sender:      { name: 'FrontRow', email: brevoSender },
+            to:          [{ email: to }],
+            subject,
+            textContent: text,
+            htmlContent: html
+        })
+        console.log(`[emailService] Brevo → ${to} (${result.messageId})`)
         return true
     }
 
-    // Race the send against a hard timeout so the caller never hangs
-    const sendPromise = transporter.sendMail({
-        from: `"FrontRow" <${process.env.GMAIL_EMAIL}>`,
-        to,
-        subject,
-        text,
-        html
-    })
+    // ── Local dev: Gmail SMTP ─────────────────────────────────────────────────
+    const gmail = getGmailTransporter()
+    if (gmail) {
+        const sendPromise  = gmail.sendMail({ from: `"FrontRow" <${process.env.GMAIL_EMAIL}>`, to, subject, text, html })
+        const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('Gmail timed out')), 12_000))
+        const info = await Promise.race([sendPromise, timeoutPromise])
+        console.log(`[emailService] Gmail → ${to} (${info.messageId})`)
+        return true
+    }
 
-    const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Email send timed out after 12s')), EMAIL_TIMEOUT_MS)
-    )
-
-    const info = await Promise.race([sendPromise, timeoutPromise])
-    console.log(`[emailService] Sent to ${to} — messageId: ${info.messageId}`)
+    // ── No credentials — log to console ──────────────────────────────────────
+    console.log(`\n[EMAIL — no credentials] To: ${to} | Subject: ${subject}\n${text}`)
     return true
 }
 
