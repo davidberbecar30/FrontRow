@@ -11,9 +11,13 @@ const { RefreshToken } = require('./RefreshToken.js')
 const { PasswordResetToken } = require('./PasswordResetToken.js')
 const { LoginCode } = require('./LoginCode.js')
 const { Purchase }  = require('./Purchase.js')
+const { UserTicket } = require('./UserTicket.js')
 
-Event.hasMany(Ticket,    { foreignKey: 'eventId', as: 'tickets' })
-Ticket.belongsTo(Event,  { foreignKey: 'eventId', as: 'event'   })
+Event.hasMany(Ticket,        { foreignKey: 'eventId',     as: 'tickets' })
+Ticket.belongsTo(Event,      { foreignKey: 'eventId',     as: 'event'   })
+
+EventDate.hasMany(Ticket,    { foreignKey: 'eventDateId', as: 'tickets' })
+Ticket.belongsTo(EventDate,  { foreignKey: 'eventDateId', as: 'eventDate' })
 
 Event.hasMany(EventDate,    { foreignKey: 'eventId', as: 'dates' })
 EventDate.belongsTo(Event,  { foreignKey: 'eventId', as: 'event' })
@@ -45,11 +49,17 @@ Purchase.belongsTo(User,         { foreignKey: 'userId', as: 'user' })
 Event.hasMany(Purchase,          { foreignKey: 'eventId', as: 'purchases' })
 Purchase.belongsTo(Event,        { foreignKey: 'eventId', as: 'event' })
 
+User.hasMany(UserTicket,         { foreignKey: 'userId',    as: 'userTickets' })
+UserTicket.belongsTo(User,       { foreignKey: 'userId',    as: 'user' })
+
+Purchase.hasOne(UserTicket,      { foreignKey: 'purchaseId', as: 'userTicket' })
+UserTicket.belongsTo(Purchase,   { foreignKey: 'purchaseId', as: 'purchase' })
+
 module.exports = {
     sequelize,
     Event, Ticket, EventDate,
     User, Role, Permission,
     Log, ObservationList,
     RefreshToken, PasswordResetToken,
-    LoginCode, Purchase
+    LoginCode, Purchase, UserTicket
 }

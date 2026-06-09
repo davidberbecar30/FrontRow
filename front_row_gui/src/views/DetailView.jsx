@@ -33,7 +33,8 @@ function DetailView() {
         seat: '',
         section: '',
         status: 'available',
-        price: ''
+        price: '',
+        eventDateId: ''
     })
 
     useEffect(() => {
@@ -94,15 +95,19 @@ function DetailView() {
 
     // ─── Ticket handlers ───────────────────────────────────
     async function handleAddTicket() {
-        if (!ticketForm.seat || !ticketForm.section) return
+        if (!ticketForm.seat || !ticketForm.section || !ticketForm.eventDateId) return
         try {
             await addTicket(id, {
                 ...ticketForm,
-                price: Number(ticketForm.price)
+                price: Number(ticketForm.price),
+                eventDateId: Number(ticketForm.eventDateId)
             })
-            setTicketForm({ seat: '', section: '', status: 'available', price: '' })
+            setTicketForm({ seat: '', section: '', status: 'available', price: '', eventDateId: '' })
             setShowAddTicket(false)
             loadTickets()
+            // Refresh event so the per-date count updates immediately
+            const updated = await getEventById(id)
+            setEvent(updated)
         } catch (err) {
             setError(err.message)
         }
@@ -113,11 +118,14 @@ function DetailView() {
         try {
             await updateTicket(editingTicket.id, {
                 ...ticketForm,
-                price: Number(ticketForm.price)
+                price: Number(ticketForm.price),
+                eventDateId: Number(ticketForm.eventDateId)
             })
             setEditingTicket(null)
-            setTicketForm({ seat: '', section: '', status: 'available', price: '' })
+            setTicketForm({ seat: '', section: '', status: 'available', price: '', eventDateId: '' })
             loadTickets()
+            const updated = await getEventById(id)
+            setEvent(updated)
         } catch (err) {
             setError(err.message)
         }
@@ -127,6 +135,8 @@ function DetailView() {
         try {
             await deleteTicket(ticketId)
             loadTickets()
+            const updated = await getEventById(id)
+            setEvent(updated)
         } catch (err) {
             setError(err.message)
         }
@@ -135,9 +145,15 @@ function DetailView() {
     async function handleBuy(index) {
         setBuyMessage(null)
         try {
-            const qty = quantities[index]
-            const result = await purchaseTickets(id, qty)
-            setEvent(prev => ({ ...prev, availableTickets: result.availableTickets }))
+            const qty    = quantities[index]
+            const dateId = event.dates[index].id
+            const result = await purchaseTickets(id, qty, dateId)
+            setEvent(prev => ({
+                ...prev,
+                dates: prev.dates.map((d, i) =>
+                    i === index ? { ...d, availableTickets: result.availableTickets } : d
+                )
+            }))
             setBuyMessage({ type: 'success', text: `${qty} ticket${qty > 1 ? 's' : ''} purchased successfully!` })
         } catch (err) {
             setBuyMessage({ type: 'error', text: err.message || 'Purchase failed' })
@@ -150,7 +166,8 @@ function DetailView() {
             seat: ticket.seat,
             section: ticket.section,
             status: ticket.status,
-            price: ticket.price || ''
+            price: ticket.price || '',
+            eventDateId: ticket.eventDateId || ''
         })
         setShowAddTicket(false)
     }
@@ -201,7 +218,7 @@ function DetailView() {
                                 </div>
                                 <div className={styles.detailCell}>
                                     <p className={styles.detailText}>
-                                        Available Tickets:{'\n'}{event.availableTickets}
+                                        Available Tickets:{'\n'}{dateObj.availableTickets ?? 0}
                                     </p>
                                 </div>
                                 <div className={styles.detailCell}>
@@ -283,6 +300,18 @@ function DetailView() {
                 {(showAddTicket || editingTicket) && (
                     <div className={styles.ticketForm}>
                         <h3>{editingTicket ? 'Edit Ticket' : 'Add Ticket'}</h3>
+                        <select
+                            className={styles.ticketInput}
+                            value={ticketForm.eventDateId}
+                            onChange={e => setTicketForm({ ...ticketForm, eventDateId: e.target.value })}
+                        >
+                            <option value="">— Select Date —</option>
+                            {event?.dates?.map(d => (
+                                <option key={d.id} value={d.id}>
+                                    {d.date} · {d.venue}, {d.location}
+                                </option>
+                            ))}
+                        </select>
                         <input
                             className={styles.ticketInput}
                             placeholder="Seat (e.g. A1)"

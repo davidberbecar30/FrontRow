@@ -32,6 +32,12 @@ EventDate.init(
             type:DataTypes.STRING,
             allowNull:false
         },
+        availableTickets:{
+            type:DataTypes.INTEGER,
+            allowNull:false,
+            defaultValue:0,
+            validate:{min:0}
+        },
     },
     {
         sequelize,

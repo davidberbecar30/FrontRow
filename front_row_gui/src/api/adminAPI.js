@@ -22,3 +22,10 @@ export async function getLogs(limit = 100) {
     if (!res.ok) throw new Error(data.error || `Failed to fetch logs (${res.status})`)
     return data
 }
+
+export async function getRevenue() {
+    const res = await apiFetch(`${BASE_URL}/revenue`)
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || `Failed to fetch revenue (${res.status})`)
+    return data
+}

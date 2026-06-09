@@ -1,11 +1,4 @@
-// Role-based and permission-based authorization. Use after requireAuth.
-// Example: router.delete('/:id', requireAuth, requireRole('admin'), controller.deleteEvent)
-// Example: router.patch('/fav', requireAuth, requirePermission('events.favorite'), controller.toggleFavorite)
 
-/**
- * requireRole(...roles)
- * Passes if req.user.role matches any of the given role names.
- */
 function requireRole(...allowedRoles) {
     return (req, res, next) => {
         if (!req.user) {
@@ -18,11 +11,7 @@ function requireRole(...allowedRoles) {
     }
 }
 
-/**
- * requirePermission(...permissions)
- * Passes if req.user.permissions includes ALL of the given permission names.
- * Permissions are embedded in the JWT at login time so no DB round-trip is needed.
- */
+
 function requirePermission(...requiredPerms) {
     return (req, res, next) => {
         if (!req.user) {

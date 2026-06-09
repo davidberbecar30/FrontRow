@@ -47,8 +47,8 @@ class EventService {
         return repository.toggleFavorite(id)
     }
 
-    async purchaseTickets(eventId, userId, quantity) {
-        return repository.purchaseTickets(eventId, userId, quantity)
+    async purchaseTickets(eventId, userId, quantity, dateId) {
+        return repository.purchaseTickets(eventId, userId, quantity, dateId)
     }
 
     async getMyTickets(userId) {

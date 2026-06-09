@@ -1,4 +1,4 @@
-const { Event, EventDate, Purchase } = require("../model/associations.js")
+const { Event, EventDate, Purchase, UserTicket, Ticket, sequelize } = require("../model/associations.js")
 const {Op,fn,col}=require("sequelize")
 
 const withDates={include:[{association:"dates"}]}
@@ -41,12 +41,58 @@ class EventRepository{
     async addEvent(eventDetails){
         const {dates=[], ...eventFields}=eventDetails
         const createdEvent=await Event.create(eventFields)
+        let createdDates = []
         if(dates.length>0){
-            await EventDate.bulkCreate(
-                dates.map(d=>({ ...d, eventId:createdEvent.id}))
-            )
+            await EventDate.bulkCreate(dates.map(d=>({ ...d, eventId:createdEvent.id})))
+            createdDates = await EventDate.findAll({ where: { eventId: createdEvent.id } })
         }
+        await this._generateTickets(createdEvent.id, Number(createdEvent.price), createdDates)
         return Event.findByPk(createdEvent.id, withDates)
+    }
+
+    // Generate ticket rows per date. Each date gets its own full set of seats.
+    // After creation, syncs EventDate.availableTickets from the ticket rows.
+    async _generateTickets(eventId, basePrice, dates) {
+        if (!dates || dates.length === 0) return
+        const SECTIONS = ['VIP', 'Floor', 'Balcony', 'Standard', 'General Admission']
+        const SEATS_PER_SECTION = 10
+        const tickets = []
+        for (const date of dates) {
+            for (const section of SECTIONS) {
+                for (let s = 1; s <= SEATS_PER_SECTION; s++) {
+                    const row = String.fromCharCode(64 + Math.ceil(s / 2))
+                    tickets.push({
+                        eventId,
+                        eventDateId: date.id,
+                        seat: `${row}${s}`,
+                        section,
+                        status: 'available',
+                        price: basePrice
+                    })
+                }
+            }
+        }
+        await Ticket.bulkCreate(tickets)
+        for (const date of dates) {
+            await this.syncDateAvailability(date.id)
+        }
+    }
+
+    // Recount available ticket rows for a date and write to EventDate.availableTickets.
+    // Single atomic UPDATE…SET subquery — no separate SELECT needed.
+    async syncDateAvailability(dateId) {
+        await sequelize.query(
+            `UPDATE event_dates
+             SET "availableTickets" = (
+                 SELECT COUNT(*) FROM tickets
+                 WHERE "eventDateId" = :dateId AND status = 'available'
+             )
+             WHERE id = :dateId`,
+            { replacements: { dateId } }
+        )
+        // Return the value we just wrote
+        const ed = await EventDate.findByPk(dateId, { attributes: ['availableTickets'] })
+        return ed ? ed.availableTickets : 0
     }
 
     async updateEvent(id, eventDetails){
@@ -112,23 +158,45 @@ class EventRepository{
         })
     }
 
-    async purchaseTickets(eventId, userId, quantity) {
+    async purchaseTickets(eventId, userId, quantity, dateId) {
         const event = await Event.findByPk(eventId)
         if (!event) return null
-        if (event.availableTickets < quantity) {
-            const err = new Error('Not enough tickets available')
+
+        const eventDate = await EventDate.findOne({ where: { id: dateId, eventId } })
+        if (!eventDate) {
+            const err = new Error('Event date not found')
+            err.status = 404
+            throw err
+        }
+        if (eventDate.availableTickets < quantity) {
+            const err = new Error('Not enough tickets available for this date')
             err.status = 400
             throw err
         }
-        event.availableTickets -= quantity
-        await event.save()
-        const purchase = await Purchase.create({
-            userId,
-            eventId,
-            quantity,
-            unitPrice: event.price
+
+        // Find actual available ticket rows for this date and mark them sold
+        const toSell = await Ticket.findAll({
+            where: { eventDateId: dateId, status: 'available' },
+            limit: quantity
         })
-        return { purchase, availableTickets: event.availableTickets }
+        if (toSell.length < quantity) {
+            const err = new Error('Not enough tickets available for this date')
+            err.status = 400
+            throw err
+        }
+        await Ticket.update(
+            { status: 'sold' },
+            { where: { id: toSell.map(t => t.id) } }
+        )
+
+        // Sync the counter from actual ticket rows (single source of truth)
+        const newCount = await this.syncDateAvailability(dateId)
+        event.availableTickets = Math.max(0, event.availableTickets - quantity)
+        await event.save()
+
+        const purchase = await Purchase.create({ userId, eventId, quantity, unitPrice: event.price })
+        await UserTicket.create({ userId, purchaseId: purchase.id })
+        return { purchase, availableTickets: newCount }
     }
 
     async getMyTickets(userId) {

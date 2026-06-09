@@ -1,4 +1,6 @@
-const service = require('../service/service')
+const service      = require('../service/service')
+const outfitService = require('../service/outfitService')
+const { Purchase }  = require('../model/associations')
 
 class EventController {
 
@@ -98,10 +100,14 @@ class EventController {
             const eventId  = Number(req.params.id)
             const userId   = req.user.id
             const quantity = Number(req.body.quantity)
+            const dateId   = Number(req.body.dateId)
             if (!quantity || quantity < 1) {
                 return res.status(400).json({ error: 'quantity must be at least 1' })
             }
-            const result = await service.purchaseTickets(eventId, userId, quantity)
+            if (!dateId) {
+                return res.status(400).json({ error: 'dateId is required' })
+            }
+            const result = await service.purchaseTickets(eventId, userId, quantity, dateId)
             if (!result) return res.status(404).json({ error: 'Event not found' })
             return res.status(201).json(result)
         } catch (err) {
@@ -121,6 +127,36 @@ class EventController {
     async getStatistics(req, res, next) {
         try {
             return res.status(200).json(await service.getStatistics())
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    // POST /events/:id/outfit  — generate outfit suggestion for an event
+    async getOutfit(req, res, next) {
+        try {
+            const event = await service.getEventById(Number(req.params.id))
+            if (!event) return res.status(404).json({ error: 'Event not found' })
+
+            const gender = req.body.gender === 'female' ? 'female' : 'male'
+            const outfit = outfitService.suggestOutfit(event.category, gender)
+            return res.status(200).json({ outfit, category: event.category, gender })
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    // PATCH /purchases/:purchaseId/outfit  — save outfit to a purchase record
+    async saveOutfit(req, res, next) {
+        try {
+            const purchase = await Purchase.findOne({
+                where: { id: Number(req.params.purchaseId), userId: req.user.id }
+            })
+            if (!purchase) return res.status(404).json({ error: 'Purchase not found' })
+
+            purchase.outfitSuggestion = req.body.outfit
+            await purchase.save()
+            return res.status(200).json({ saved: true })
         } catch (err) {
             next(err)
         }

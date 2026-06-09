@@ -71,9 +71,10 @@ async function runBulkSeed({ events = 1000 } = {}) {
         for (let d = 0; d < numDates; d++) {
             dateRows.push({
                 eventId,
-                date:      faker.date.future().toISOString().split('T')[0],
-                location:  faker.helpers.arrayElement(LOCATIONS),
-                venue:     faker.helpers.arrayElement(VENUES),
+                date:             faker.date.future().toISOString().split('T')[0],
+                location:         faker.helpers.arrayElement(LOCATIONS),
+                venue:            faker.helpers.arrayElement(VENUES),
+                availableTickets: faker.number.int({ min: 50, max: 1000 }),
                 createdAt: new Date(),
                 updatedAt: new Date()
             })

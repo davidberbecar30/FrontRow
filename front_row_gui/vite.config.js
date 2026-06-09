@@ -8,16 +8,12 @@ export default defineConfig({
       host:true,
       proxy: {
         '/auth': {
-          target: 'https://localhost:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
-          bypass: (req) => {
-            // Browser navigations (Accept: text/html) should get the SPA, not the proxy
-            if (req.headers.accept?.includes('text/html')) return '/index.html'
-          }
         },
         '/events': {
-          target: 'https://localhost:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
           bypass: (req) => {
@@ -25,7 +21,7 @@ export default defineConfig({
           }
         },
         '/admin': {
-          target: 'https://localhost:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
           bypass: (req) => {
@@ -33,7 +29,7 @@ export default defineConfig({
           }
         },
         '/chat': {
-          target: 'https://localhost:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
           bypass: (req) => {
@@ -41,7 +37,7 @@ export default defineConfig({
           }
         },
         '/faker': {
-          target: 'https://localhost:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
           bypass: (req) => {
@@ -49,7 +45,7 @@ export default defineConfig({
           }
         },
         '/stats': {
-          target: 'https://localhost:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
           bypass: (req) => {
@@ -57,7 +53,7 @@ export default defineConfig({
           }
         },
         '/ws': {
-          target: 'wss://localhost:3000',
+          target: 'ws://localhost:3000',
           changeOrigin: true,
           secure: false,
           ws: true,

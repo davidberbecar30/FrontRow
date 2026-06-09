@@ -280,10 +280,10 @@ export async function getGlobalTicketStats() {
     return response.json()
 }
 
-export async function purchaseTickets(eventId, quantity) {
+export async function purchaseTickets(eventId, quantity, dateId) {
     const response = await apiFetch(`${BASE_URL}/${eventId}/purchase`, {
         method: 'POST',
-        body: JSON.stringify({ quantity })
+        body: JSON.stringify({ quantity, dateId })
     })
     if (!response.ok) {
         const data = await response.json().catch(() => ({}))
@@ -295,5 +295,26 @@ export async function purchaseTickets(eventId, quantity) {
 export async function getMyTickets() {
     const response = await apiFetch(`${BASE_URL}/my-tickets`)
     if (!response.ok) throw new Error('Failed to fetch your tickets')
+    return response.json()
+}
+
+export async function getOutfitSuggestion(eventId, gender) {
+    const response = await apiFetch(`${BASE_URL}/${eventId}/outfit`, {
+        method: 'POST',
+        body: JSON.stringify({ gender })
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to get outfit suggestion')
+    }
+    return response.json()
+}
+
+export async function saveOutfitSuggestion(purchaseId, outfit) {
+    const response = await apiFetch(`${BASE_URL}/purchases/${purchaseId}/outfit`, {
+        method: 'PATCH',
+        body: JSON.stringify({ outfit })
+    })
+    if (!response.ok) throw new Error('Failed to save outfit')
     return response.json()
 }

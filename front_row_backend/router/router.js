@@ -23,6 +23,16 @@ router.post('/:id/purchase',
     controller.purchaseTickets
 )
 
+// ── Authenticated: outfit suggestion ─────────────────────────────────────────
+router.post('/:id/outfit',
+    requireAuth,
+    controller.getOutfit
+)
+router.patch('/purchases/:purchaseId/outfit',
+    requireAuth,
+    controller.saveOutfit
+)
+
 // ── Admin / Moderator writes ──────────────────────────────────────────────────
 router.post('/',
     requireAuth, requirePermission('events.create'),

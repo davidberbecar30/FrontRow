@@ -30,6 +30,11 @@ Purchase.init(
         unitPrice: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false
+        },
+        outfitSuggestion: {
+            type: DataTypes.JSONB,
+            allowNull: true,
+            defaultValue: null
         }
     },
     {

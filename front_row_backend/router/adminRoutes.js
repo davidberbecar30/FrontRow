@@ -17,6 +17,12 @@ router.get('/logs',
     adminController.getLogs
 )
 
+// Revenue — admin only
+router.get('/revenue',
+    requireRole('admin'),
+    adminController.getRevenue
+)
+
 // Destructive actions: admin only
 router.delete('/observations/:id',
     requireRole('admin'),

@@ -39,6 +39,16 @@ Ticket.init(
             onDelete:"CASCADE",
             onUpdate:"CASCADE"
         },
+        eventDateId:{
+            type:DataTypes.INTEGER,
+            allowNull:true,
+            references:{
+                model:"event_dates",
+                key:"id",
+            },
+            onDelete:"SET NULL",
+            onUpdate:"CASCADE"
+        },
         seat:{
             type:DataTypes.STRING,
             allowNull:false

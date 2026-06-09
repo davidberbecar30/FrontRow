@@ -27,7 +27,8 @@ function generateFakeEvent(){
     const dates=Array.from({length:numDates},()=>({
         date: faker.date.future().toISOString().split("T")[0],
         location: faker.helpers.arrayElement(locations),
-        venue: faker.helpers.arrayElement(venues)
+        venue: faker.helpers.arrayElement(venues),
+        availableTickets: faker.number.int({ min: 50, max: 1000 })
     }))
 
     return {
