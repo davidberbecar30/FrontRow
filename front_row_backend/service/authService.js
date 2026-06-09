@@ -136,7 +136,6 @@ class AuthService {
 
         await authRepo.createLoginCode({ userId, codeHash, expiresAt })
 
-        // Send the code via email AND log to console for testing
         await sendLoginCode(email, code)
         console.log(`\n[2FA CODE] ${code} for ${email}\n`)
 
@@ -279,7 +278,6 @@ class AuthService {
         const resetLink = `${CLIENT_URL}/reset-password?token=${rawToken}`
         console.log(`\n[PASSWORD RESET] Link for ${email}:\n${resetLink}\n`)
 
-        // Also send via email
         await sendPasswordResetEmail(email, resetLink)
 
         return rawToken  // returned so integration tests can exercise the full flow

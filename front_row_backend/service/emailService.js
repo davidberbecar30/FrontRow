@@ -11,40 +11,44 @@ function getTransporter() {
     if (!user || !pass) return null
 
     _transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user, pass }
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: { user, pass },
+        connectionTimeout: 8_000,   // fail fast if Gmail is unreachable
+        greetingTimeout:   8_000,
+        socketTimeout:     10_000
     })
     return _transporter
 }
+
+const EMAIL_TIMEOUT_MS = 12_000   // hard cap — login must not hang longer than this
 
 async function sendEmail({ to, subject, text, html }) {
     const transporter = getTransporter()
 
     if (!transporter) {
-        console.log(`\n┌─────────────────────────────────────────────`)
-        console.log(`│ EMAIL (not sent — GMAIL_EMAIL/GMAIL_PASSWORD not set)`)
-        console.log(`│ To: ${to}`)
-        console.log(`│ Subject: ${subject}`)
-        console.log(`│ ───────────────────────────────────────────`)
-        console.log(`│ ${text.replace(/\n/g, '\n│ ')}`)
-        console.log(`└─────────────────────────────────────────────\n`)
+        console.log(`\n[EMAIL — no credentials] To: ${to} | Subject: ${subject}`)
+        console.log(text)
         return true
     }
 
-    try {
-        const info = await transporter.sendMail({
-            from: `"FrontRow" <${process.env.GMAIL_EMAIL}>`,
-            to,
-            subject,
-            text,
-            html
-        })
-        console.log(`[emailService] Sent to ${to} — messageId: ${info.messageId}`)
-        return true
-    } catch (err) {
-        console.error(`[emailService] Failed to send to ${to}:`, err.message)
-        return false
-    }
+    // Race the send against a hard timeout so the caller never hangs
+    const sendPromise = transporter.sendMail({
+        from: `"FrontRow" <${process.env.GMAIL_EMAIL}>`,
+        to,
+        subject,
+        text,
+        html
+    })
+
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Email send timed out after 12s')), EMAIL_TIMEOUT_MS)
+    )
+
+    const info = await Promise.race([sendPromise, timeoutPromise])
+    console.log(`[emailService] Sent to ${to} — messageId: ${info.messageId}`)
+    return true
 }
 
 async function sendLoginCode(email, code) {
