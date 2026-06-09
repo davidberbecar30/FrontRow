@@ -17,6 +17,7 @@ function MasterView() {
     const [dateFrom, setDateFrom] = useState('')
     const [dateTo, setDateTo] = useState('')
     const [activeCategory, setActiveCategory] = useState('🔥 Hype')
+    const [pickedEvents, setPickedEvents] = useState([])
     const [events, setEvents] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
@@ -114,6 +115,25 @@ function MasterView() {
         setRecentlyViewed(getRecentlyViewed())
     }, [loadInitial])
 
+    // ─── Picked for you — fetch top 3 by price per pill ───
+    const PILL_CATEGORY_MAP = {
+        '🔥 Hype':    null,       // all categories
+        '🧘 Chill':   'Festival',
+        '💗 Date':    'Theater',
+        '🏆 Sports':  'Sports'
+    }
+
+    useEffect(() => {
+        async function fetchPicked() {
+            try {
+                const category = PILL_CATEGORY_MAP[activeCategory]
+                const data = await getEvents({ limit: 3, sort: 'price_desc', category: category || '' })
+                setPickedEvents(data.data || [])
+            } catch {}
+        }
+        fetchPicked()
+    }, [activeCategory])
+
     // ─── WebSocket ─────────────────────────────────────────
     useWebSocket((message) => {
         if (message.type === 'NEW_EVENT') {
@@ -123,7 +143,6 @@ function MasterView() {
     })
 
     const categories = ['🔥 Hype', '🧘 Chill', '💗 Date', '🏆 Sports']
-    const picked = events.slice(0, 3)
     const matchScores = [98, 91, 87]
 
     return (
@@ -141,6 +160,12 @@ function MasterView() {
                 onDateToChange={setDateTo}
                 search={search}
                 onSearchChange={setSearch}
+                onClear={() => {
+                    setSearch('')
+                    setLocation('')
+                    setDateFrom('')
+                    setDateTo('')
+                }}
             />
 
             {error && <p style={{ textAlign: 'center', color: '#FF7675' }}>{error}</p>}
@@ -162,7 +187,7 @@ function MasterView() {
                     ))}
                 </div>
                 <div className={styles.pickedCards}>
-                    {picked.map((event, i) => (
+                    {pickedEvents.map((event, i) => (
                         <div
                             key={event.id}
                             className={styles.pickedCard}

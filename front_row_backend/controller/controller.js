@@ -6,7 +6,7 @@ class EventController {
 
     async getAllEvents(req, res, next) {
         try {
-            const { page, limit, category, search, location, dateFrom, dateTo } = req.query
+            const { page, limit, category, search, location, dateFrom, dateTo, sort } = req.query
             const result = await service.getEvents({
                 page: Number(page),
                 limit: Number(limit),
@@ -14,7 +14,8 @@ class EventController {
                 search,
                 location,
                 dateFrom,
-                dateTo
+                dateTo,
+                sort
             })
             return res.status(200).json(result)
         } catch (err) {

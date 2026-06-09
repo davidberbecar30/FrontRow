@@ -7,8 +7,11 @@ function FilterComponent({
     location, onLocationChange,
     dateFrom, onDateFromChange,
     dateTo,   onDateToChange,
-    search,   onSearchChange
+    search,   onSearchChange,
+    onClear
 }) {
+    const hasFilters = search || location || dateFrom || dateTo
+
     return (
         <div className={styles.filterDiv}>
             <div className={styles.filterFrame}>
@@ -80,6 +83,13 @@ function FilterComponent({
                 </div>
 
             </div>
+
+            {/* Clear filters button — only visible when a filter is active */}
+            {hasFilters && onClear && (
+                <button className={styles.clearBtn} onClick={onClear}>
+                    Clear filters
+                </button>
+            )}
         </div>
     )
 }

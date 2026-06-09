@@ -7,7 +7,7 @@ class EventRepository{
 
     constructor(){}
 
-    async getAllEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo } = {}) {
+    async getAllEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo, sort } = {}) {
         const where = {}
         if (category) where.category = category
         if (search)   where.title = { [Op.iLike]: `%${search}%` }
@@ -19,6 +19,7 @@ class EventRepository{
         else if (dateTo)         dateWhere.date = { [Op.lte]: dateTo }
 
         const hasDateFilter = location || dateFrom || dateTo
+        const order = sort === 'price_desc' ? [['price', 'DESC']] : [['id', 'ASC']]
 
         return Event.findAndCountAll({
             where,
@@ -29,7 +30,7 @@ class EventRepository{
             }],
             limit,
             offset: (page - 1) * limit,
-            order:  [['id', 'ASC']],
+            order,
             distinct: true
         })
     }
@@ -41,12 +42,9 @@ class EventRepository{
     async addEvent(eventDetails){
         const {dates=[], ...eventFields}=eventDetails
         const createdEvent=await Event.create(eventFields)
-        let createdDates = []
         if(dates.length>0){
             await EventDate.bulkCreate(dates.map(d=>({ ...d, eventId:createdEvent.id})))
-            createdDates = await EventDate.findAll({ where: { eventId: createdEvent.id } })
         }
-        await this._generateTickets(createdEvent.id, Number(createdEvent.price), createdDates)
         return Event.findByPk(createdEvent.id, withDates)
     }
 

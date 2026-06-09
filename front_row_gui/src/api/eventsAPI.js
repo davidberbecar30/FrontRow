@@ -65,12 +65,13 @@ export async function syncWithServer() {
     clearPendingActions()
 }
 
-export async function getEvents({ page = 1, limit = 4, search = '', category = '', location = '', dateFrom = '', dateTo = '' } = {}) {
+export async function getEvents({ page = 1, limit = 4, search = '', category = '', location = '', dateFrom = '', dateTo = '', sort = '' } = {}) {
     const params = new URLSearchParams({ page, limit })
     if (search)   params.set('search',   search)
     if (category) params.set('category', category)
     if (location) params.set('location', location)
     if (dateFrom) params.set('dateFrom', dateFrom)
+    if (sort)     params.set('sort',     sort)
     if (dateTo)   params.set('dateTo',   dateTo)
     const response = await apiFetch(`${BASE_URL}?${params}`)
     if (!response.ok) throw new Error('Failed to fetch events')

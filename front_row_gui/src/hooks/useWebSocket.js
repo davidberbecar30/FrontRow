@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 
-// Use VITE_WS_URL if set (production), otherwise derive from current page (local dev)
 function wsUrl() {
     if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -8,30 +7,45 @@ function wsUrl() {
 }
 
 export function useWebSocket(onMessage) {
-    const ws = useRef(null)
+    const onMessageRef = useRef(onMessage)
+    onMessageRef.current = onMessage
 
     useEffect(() => {
-        ws.current = new WebSocket(wsUrl())
+        // Small delay so React StrictMode's immediate unmount/remount cycle
+        // doesn't open a connection that gets torn down before it's established.
+        let socket = null
+        let active = true
 
-        ws.current.onopen = () => {
-            console.log('WebSocket connected')
-        }
+        const timer = setTimeout(() => {
+            if (!active) return
 
-        ws.current.onmessage = (event) => {
-            const message = JSON.parse(event.data)
-            onMessage(message)
-        }
+            socket = new WebSocket(wsUrl())
 
-        ws.current.onclose = () => {
-            console.log('WebSocket disconnected')
-        }
+            socket.onopen = () => {
+                if (active) console.log('WebSocket connected')
+            }
 
-        ws.current.onerror = (error) => {
-            console.error('WebSocket error:', error)
-        }
+            socket.onmessage = (event) => {
+                if (!active) return
+                try {
+                    const message = JSON.parse(event.data)
+                    onMessageRef.current(message)
+                } catch {}
+            }
+
+            socket.onclose = () => {
+                if (active) console.log('WebSocket disconnected')
+            }
+
+            // Silently ignore errors — the onclose fires right after
+            // and provides enough information for debugging.
+            socket.onerror = () => {}
+        }, 50)
 
         return () => {
-            ws.current.close()
+            active = false
+            clearTimeout(timer)
+            if (socket) socket.close()
         }
     }, [])
 }

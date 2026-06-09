@@ -23,7 +23,7 @@ app.use(cors({
     exposedHeaders: ['X-New-Token']
 }))
 
-app.use(express.json())
+app.use(express.json({ limit: '10mb' }))
 app.use('/images', express.static('public/images'))
 
 // Initialize Passport (stateless — no sessions, JWT only)

@@ -11,6 +11,7 @@ import ResetPasswordView from "./views/ResetPasswordView.jsx";
 import StatisticsView from "./views/StatisticsView.jsx";
 import ChatView from "./views/ChatView.jsx";
 import AdminObservationsView from "./views/AdminObservationsView.jsx";
+import AdminRevenueView from "./views/AdminRevenueView.jsx";
 import AdminDemoView from "./views/AdminDemoView.jsx";
 import OAuthCallbackView from "./views/OAuthCallbackView.jsx";
 import MyTicketsView from "./views/MyTicketsView.jsx";
@@ -69,6 +70,9 @@ function App() {
             }/>
             <Route path="/admin/observations" element={
                 <ProtectedRoute><AdminObservationsView/></ProtectedRoute>
+            }/>
+            <Route path="/admin/revenue" element={
+                <ProtectedRoute><AdminRevenueView/></ProtectedRoute>
             }/>
             <Route path="/admin/demo" element={<AdminDemoView/>}/>
         </Routes>

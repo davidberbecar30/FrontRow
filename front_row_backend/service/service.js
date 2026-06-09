@@ -2,7 +2,7 @@ const repository = require('../repository/repository')
 
 class EventService {
 
-    async getEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo } = {}) {
+    async getEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo, sort } = {}) {
     const pageNum  = Number(page) || 1
     const limitNum = Number(limit) || 4
 
@@ -13,7 +13,8 @@ class EventService {
         search,
         location,
         dateFrom,
-        dateTo
+        dateTo,
+        sort
     })
 
     return {
