@@ -42,7 +42,7 @@ app.use('/chat',   chatRoutes)
 app.use('/admin',  adminRoutes)
 app.use('/stats',  statsRoutes)
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV === 'development') {
     const fakerRoutes = require('./router/fakerRoutes')
     app.use('/faker', fakerRoutes)
 }

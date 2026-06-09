@@ -1,20 +1,28 @@
-const { Resend } = require('resend')
+const nodemailer = require('nodemailer')
 
-// Resend's free tier with onboarding@resend.dev can only deliver to the
-// account owner's email. FORWARD_TO lets us receive all emails during dev/demo.
-// To send to real users, verify a domain at resend.com/domains and update
-// the `from` address below to use it.
-const FORWARD_TO = process.env.FORWARD_TO || 'berbecardavid681@gmail.com'
+// Gmail SMTP transporter — uses the App Password from .env
+// (Generate one at: myaccount.google.com → Security → App passwords)
+let _transporter = null
 
-const resend = process.env.RESEND_API_KEY
-    ? new Resend(process.env.RESEND_API_KEY)
-    : null
+function getTransporter() {
+    if (_transporter) return _transporter
+    const user = process.env.GMAIL_EMAIL
+    const pass = process.env.GMAIL_PASSWORD
+    if (!user || !pass) return null
 
+    _transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass }
+    })
+    return _transporter
+}
 
 async function sendEmail({ to, subject, text, html }) {
-    if (!resend) {
+    const transporter = getTransporter()
+
+    if (!transporter) {
         console.log(`\n┌─────────────────────────────────────────────`)
-        console.log(`│ 📧 EMAIL (not sent — no RESEND_API_KEY)`)
+        console.log(`│ EMAIL (not sent — GMAIL_EMAIL/GMAIL_PASSWORD not set)`)
         console.log(`│ To: ${to}`)
         console.log(`│ Subject: ${subject}`)
         console.log(`│ ───────────────────────────────────────────`)
@@ -24,26 +32,17 @@ async function sendEmail({ to, subject, text, html }) {
     }
 
     try {
-        const { data, error } = await resend.emails.send({
-            from:    'FrontRow <onboarding@resend.dev>',
-            to:      [FORWARD_TO],
-            subject: `[FrontRow — for ${to}] ${subject}`,
-            text:    `Originally intended for: ${to}\n\n${text}`,
-            html:    html.replace(
-                '<div style="font-family:',
-                `<p style="color:#888;font-size:13px;"><strong>Originally intended for:</strong> ${to}</p><div style="font-family:`
-            )
+        const info = await transporter.sendMail({
+            from: `"FrontRow" <${process.env.GMAIL_EMAIL}>`,
+            to,
+            subject,
+            text,
+            html
         })
-
-        if (error) {
-            console.error(`[emailService] Resend error:`, error)
-            return false
-        }
-
-        console.log(`[emailService] Sent to ${FORWARD_TO} (intended: ${to}) — id: ${data.id}`)
+        console.log(`[emailService] Sent to ${to} — messageId: ${info.messageId}`)
         return true
     } catch (err) {
-        console.error(`[emailService] Failed to send:`, err.message)
+        console.error(`[emailService] Failed to send to ${to}:`, err.message)
         return false
     }
 }
@@ -63,7 +62,7 @@ async function sendLoginCode(email, code) {
         `  <h2 style="color: #333;">FrontRow Login Code</h2>`,
         `  <p style="color: #555; font-size: 15px;">Your login verification code is:</p>`,
         `  <div style="text-align: center; margin: 24px 0;">`,
-        `    <span style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: #000; color: #fff; border-radius: 6px;">${code}</span>`,
+        `    <span style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 12px 24px; background: #6C5CE7; color: #fff; border-radius: 6px;">${code}</span>`,
         `  </div>`,
         `  <p style="color: #888; font-size: 13px;">This code expires in 5 minutes.</p>`,
         `  <hr style="border: none; border-top: 1px solid #ddd;" />`,
@@ -91,7 +90,7 @@ async function sendPasswordResetEmail(email, resetLink) {
         `  <p style="color: #555; font-size: 15px;">A password reset was requested for your account.</p>`,
         `  <p style="color: #555; font-size: 15px;">Click the button below to set a new password:</p>`,
         `  <div style="text-align: center; margin: 24px 0;">`,
-        `    <a href="${resetLink}" style="display: inline-block; padding: 14px 32px; background: #000; color: #fff; text-decoration: none; border-radius: 6px; font-size: 16px;">Reset Password</a>`,
+        `    <a href="${resetLink}" style="display: inline-block; padding: 14px 32px; background: #6C5CE7; color: #fff; text-decoration: none; border-radius: 6px; font-size: 16px;">Reset Password</a>`,
         `  </div>`,
         `  <p style="color: #888; font-size: 13px;">This link expires in 60 minutes.</p>`,
         `  <hr style="border: none; border-top: 1px solid #ddd;" />`,
