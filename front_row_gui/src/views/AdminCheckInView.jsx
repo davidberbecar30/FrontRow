@@ -4,27 +4,50 @@ import { apiFetch } from '../api/apiFetch.js'
 import styles from './AdminCheckInView.module.css'
 
 async function decodeQRFromFile(file) {
-    // Decode QR code from an image file using jsQR
     const jsQR = (await import('jsqr')).default
 
     return new Promise((resolve, reject) => {
         const img = new Image()
         const url = URL.createObjectURL(file)
+
         img.onload = () => {
-            const canvas = document.createElement('canvas')
-            canvas.width  = img.width
-            canvas.height = img.height
-            const ctx = canvas.getContext('2d')
-            ctx.drawImage(img, 0, 0)
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
             URL.revokeObjectURL(url)
-            const result = jsQR(imageData.data, imageData.width, imageData.height)
-            if (result) {
-                resolve(result.data)
-            } else {
-                reject(new Error('No QR code detected in this image'))
+
+            // Scale down large phone photos — jsQR works best under ~1200px
+            const MAX = 1200
+            const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+            const w = Math.round(img.width  * scale)
+            const h = Math.round(img.height * scale)
+
+            const canvas = document.createElement('canvas')
+            const ctx    = canvas.getContext('2d')
+
+            // Try all 4 rotations to handle EXIF orientation issues from phone cameras
+            const rotations = [0, 90, 180, 270]
+            for (const deg of rotations) {
+                const rad = (deg * Math.PI) / 180
+                const isRotated = deg === 90 || deg === 270
+
+                canvas.width  = isRotated ? h : w
+                canvas.height = isRotated ? w : h
+
+                ctx.save()
+                ctx.translate(canvas.width / 2, canvas.height / 2)
+                ctx.rotate(rad)
+                ctx.drawImage(img, -w / 2, -h / 2, w, h)
+                ctx.restore()
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+                const result    = jsQR(imageData.data, imageData.width, imageData.height)
+                if (result) {
+                    resolve(result.data)
+                    return
+                }
             }
+
+            reject(new Error('No QR code detected — try better lighting or move closer'))
         }
+
         img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')) }
         img.src = url
     })
