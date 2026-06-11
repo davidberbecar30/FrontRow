@@ -78,8 +78,12 @@ function DetailView() {
 
     async function handleFavorite() {
         try {
-            const updated = await toggleFavorite(id)
-            setEvent(updated)
+            await toggleFavorite(id)
+            setEvent(prev => ({
+                ...prev,
+                userFavorited: !(prev.userFavorited ?? prev.favorited),
+                favorited:     !(prev.userFavorited ?? prev.favorited),
+            }))
         } catch (err) {
             setError(err.message)
         }
@@ -187,7 +191,7 @@ function DetailView() {
                     <div className={styles.titleRow}>
                         <h1 className={styles.title}>{event.title}</h1>
                         <button className={styles.favoriteBtn} onClick={handleFavorite}>
-                            {event.favorited ? '❤️' : '🤍'}
+                            {(event.userFavorited ?? event.favorited) ? '❤️' : '🤍'}
                         </button>
                     </div>
                     <p className={styles.description}>{event.description}</p>
