@@ -9,6 +9,7 @@ const { requireRole, requirePermission } = require('../middleware/authorize')
 router.get('/',            controller.getAllEvents)
 router.get('/statistics',  controller.getStatistics)
 router.get('/my-tickets',  requireAuth, controller.getMyTickets)
+router.get('/my-favorites', requireAuth, controller.getMyFavorites)
 router.get('/:id',         controller.getEventById)
 
 // ── Authenticated: favorite toggle ───────────────────────────────────────────

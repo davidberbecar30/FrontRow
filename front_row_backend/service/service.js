@@ -2,7 +2,7 @@ const repository = require('../repository/repository')
 
 class EventService {
 
-    async getEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo, sort } = {}) {
+    async getEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo, sort, userId } = {}) {
     const pageNum  = Number(page) || 1
     const limitNum = Number(limit) || 4
 
@@ -14,7 +14,8 @@ class EventService {
         location,
         dateFrom,
         dateTo,
-        sort
+        sort,
+        userId
     })
 
     return {
@@ -46,6 +47,14 @@ class EventService {
 
     async toggleFavorite(id) {
         return repository.toggleFavorite(id)
+    }
+
+    async toggleUserFavorite(userId, eventId) {
+        return repository.toggleUserFavorite(userId, eventId)
+    }
+
+    async getUserFavorites(userId) {
+        return repository.getUserFavorites(userId)
     }
 
     async purchaseTickets(eventId, userId, quantity, dateId) {

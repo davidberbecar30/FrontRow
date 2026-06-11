@@ -15,7 +15,8 @@ class EventController {
                 location,
                 dateFrom,
                 dateTo,
-                sort
+                sort,
+                userId: req.user?.id   // enrich with per-user userFavorited if logged in
             })
             return res.status(200).json(result)
         } catch (err) {
@@ -85,12 +86,19 @@ class EventController {
 
     async toggleFavorite(req, res, next) {
         try {
-            const id = Number(req.params.id)
-            const favorited = await service.toggleFavorite(id)
-            if (!favorited) {
-                return res.status(404).json({ message: "Could not toggle for event" })
-            }
-            return res.status(200).json(favorited)
+            const eventId = Number(req.params.id)
+            const userId  = req.user.id
+            const result  = await service.toggleUserFavorite(userId, eventId)
+            return res.status(200).json(result)
+        } catch (err) {
+            next(err)
+        }
+    }
+
+    async getMyFavorites(req, res, next) {
+        try {
+            const events = await service.getUserFavorites(req.user.id)
+            return res.status(200).json(events)
         } catch (err) {
             next(err)
         }

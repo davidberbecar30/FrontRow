@@ -6,13 +6,14 @@ import {useState} from "react";
 
 function EventCard({ event, onFavoriteToggle }) {
     const navigate = useNavigate()
-    const [favorited, setFavorited] = useState(event.favorited)  // 👈 local state
+    // userFavorited is the per-user flag from the API; fall back to legacy global flag
+    const [favorited, setFavorited] = useState(event.userFavorited ?? event.favorited ?? false)
 
     async function handleFavorite(e) {
         e.stopPropagation()
         try {
             const updated = await toggleFavorite(event.id)
-            setFavorited(updated.favorited)  // 👈 update local state immediately
+            setFavorited(updated.favorited)
             onFavoriteToggle?.()
         } catch (err) {
             console.error(err)

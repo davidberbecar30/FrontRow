@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getEvents } from '../api/eventsAPI.js'
+import { getMyFavorites } from '../api/eventsAPI.js'
 import styles from './FavoritesView.module.css'
 import Header from '../components/Header.jsx'
 import EventCard from '../components/EventCard.jsx'
@@ -22,9 +22,8 @@ function FavoritesView() {
     async function loadFavorites() {
         try {
             setLoading(true)
-            const data = await getEvents({ limit: 100 })
-            const favorited = data.data.filter(e => e.favorited)
-            setFavorites(favorited)
+            const events = await getMyFavorites()
+            setFavorites(events)
         } catch (err) {
             setError(err.message)
         } finally {

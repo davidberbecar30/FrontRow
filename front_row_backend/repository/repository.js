@@ -1,4 +1,4 @@
-const { Event, EventDate, Purchase, UserTicket, Ticket, sequelize } = require("../model/associations.js")
+const { Event, EventDate, Purchase, UserTicket, UserFavorite, Ticket, sequelize } = require("../model/associations.js")
 const {Op,fn,col}=require("sequelize")
 
 const withDates={include:[{association:"dates"}]}
@@ -7,7 +7,7 @@ class EventRepository{
 
     constructor(){}
 
-    async getAllEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo, sort } = {}) {
+    async getAllEvents({ page = 1, limit = 4, category, search, location, dateFrom, dateTo, sort, userId } = {}) {
         const where = {}
         if (category) where.category = category
         if (search)   where.title = { [Op.iLike]: `%${search}%` }
@@ -21,7 +21,7 @@ class EventRepository{
         const hasDateFilter = location || dateFrom || dateTo
         const order = sort === 'price_desc' ? [['price', 'DESC']] : [['id', 'ASC']]
 
-        return Event.findAndCountAll({
+        const result = await Event.findAndCountAll({
             where,
             include: [{
                 association: 'dates',
@@ -33,6 +33,23 @@ class EventRepository{
             order,
             distinct: true
         })
+
+        // Enrich with per-user favorited flag when the caller is authenticated
+        if (userId && result.rows.length > 0) {
+            const eventIds = result.rows.map(e => e.id)
+            const favRows  = await UserFavorite.findAll({
+                where: { userId, eventId: eventIds },
+                attributes: ['eventId']
+            })
+            const favSet = new Set(favRows.map(f => f.eventId))
+            result.rows = result.rows.map(e => {
+                const plain = e.get({ plain: true })
+                plain.userFavorited = favSet.has(e.id)
+                return plain
+            })
+        }
+
+        return result
     }
 
     async getEventById(id){
@@ -118,12 +135,43 @@ class EventRepository{
         return existingEvent
     }
 
+    // Legacy global toggle — kept for backward compat but no longer used
     async toggleFavorite(id){
         const existingEvent=await Event.findByPk(id)
         if(!existingEvent) return null
         existingEvent.favorited=!existingEvent.favorited
         await existingEvent.save()
         return Event.findByPk(id, withDates)
+    }
+
+    // Per-user favorites ─────────────────────────────────────────────────────
+
+    async toggleUserFavorite(userId, eventId) {
+        const existing = await UserFavorite.findOne({ where: { userId, eventId } })
+        if (existing) {
+            await existing.destroy()
+            return { favorited: false, eventId }
+        }
+        await UserFavorite.create({ userId, eventId })
+        return { favorited: true, eventId }
+    }
+
+    async getUserFavorites(userId) {
+        const favRows = await UserFavorite.findAll({
+            where: { userId },
+            include: [{
+                association: 'event',
+                include: [{ association: 'dates' }]
+            }]
+        })
+        return favRows
+            .map(f => {
+                if (!f.event) return null
+                const plain = f.event.get({ plain: true })
+                plain.userFavorited = true
+                return plain
+            })
+            .filter(Boolean)
     }
 
     async countEvents(){

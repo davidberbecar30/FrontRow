@@ -164,6 +164,11 @@ async function start() {
             ALTER TABLE purchases
                 ADD COLUMN IF NOT EXISTS "outfitSuggestion" JSONB DEFAULT NULL;
         `)
+        // user_favorites table is created by sequelize.sync — just ensure the unique index exists
+        await sequelize.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS user_favorites_user_event_unique
+                ON user_favorites ("userId", "eventId");
+        `)
         console.log('5b. explicit column migrations done')
 
         await createIndices()

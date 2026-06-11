@@ -299,6 +299,12 @@ export async function getMyTickets() {
     return response.json()
 }
 
+export async function getMyFavorites() {
+    const response = await apiFetch(`${BASE_URL}/my-favorites`)
+    if (!response.ok) throw new Error('Failed to fetch your favorites')
+    return response.json()
+}
+
 export async function getOutfitSuggestion(eventId, gender) {
     const response = await apiFetch(`${BASE_URL}/${eventId}/outfit`, {
         method: 'POST',

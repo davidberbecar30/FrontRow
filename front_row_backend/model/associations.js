@@ -12,6 +12,7 @@ const { PasswordResetToken } = require('./PasswordResetToken.js')
 const { LoginCode } = require('./LoginCode.js')
 const { Purchase }  = require('./Purchase.js')
 const { UserTicket } = require('./UserTicket.js')
+const { UserFavorite } = require('./UserFavorite.js')
 
 Event.hasMany(Ticket,        { foreignKey: 'eventId',     as: 'tickets' })
 Ticket.belongsTo(Event,      { foreignKey: 'eventId',     as: 'event'   })
@@ -55,11 +56,19 @@ UserTicket.belongsTo(User,       { foreignKey: 'userId',    as: 'user' })
 Purchase.hasOne(UserTicket,      { foreignKey: 'purchaseId', as: 'userTicket' })
 UserTicket.belongsTo(Purchase,   { foreignKey: 'purchaseId', as: 'purchase' })
 
+// Per-user favorites
+User.belongsToMany(Event, { through: UserFavorite, foreignKey: 'userId',  as: 'favoriteEvents' })
+Event.belongsToMany(User, { through: UserFavorite, foreignKey: 'eventId', as: 'favoritedBy' })
+User.hasMany(UserFavorite,        { foreignKey: 'userId',  as: 'userFavorites' })
+UserFavorite.belongsTo(User,      { foreignKey: 'userId',  as: 'user' })
+Event.hasMany(UserFavorite,       { foreignKey: 'eventId', as: 'userFavorites' })
+UserFavorite.belongsTo(Event,     { foreignKey: 'eventId', as: 'event' })
+
 module.exports = {
     sequelize,
     Event, Ticket, EventDate,
     User, Role, Permission,
     Log, ObservationList,
     RefreshToken, PasswordResetToken,
-    LoginCode, Purchase, UserTicket
+    LoginCode, Purchase, UserTicket, UserFavorite
 }
