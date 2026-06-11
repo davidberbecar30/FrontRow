@@ -124,6 +124,9 @@ function Header() {
                             <button className={styles.sidebarItem} onClick={() => nav('/admin/revenue')}>
                                 Revenue
                             </button>
+                            <button className={styles.sidebarItem} onClick={() => nav('/admin/check-in')}>
+                                Check-In Scanner
+                            </button>
                             <button className={styles.sidebarItem} onClick={() => nav('/admin/demo')}>
                                 Demo Panel
                             </button>
