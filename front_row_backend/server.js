@@ -163,6 +163,12 @@ async function start() {
                     ON DELETE SET NULL ON UPDATE CASCADE;
             ALTER TABLE purchases
                 ADD COLUMN IF NOT EXISTS "outfitSuggestion" JSONB DEFAULT NULL;
+            ALTER TABLE purchases
+                ADD COLUMN IF NOT EXISTS "checkInCode" VARCHAR(255) UNIQUE;
+            ALTER TABLE purchases
+                ADD COLUMN IF NOT EXISTS "checkedIn" BOOLEAN NOT NULL DEFAULT FALSE;
+            ALTER TABLE purchases
+                ADD COLUMN IF NOT EXISTS "checkedInAt" TIMESTAMP WITH TIME ZONE;
         `)
         // user_favorites table is created by sequelize.sync — just ensure the unique index exists
         await sequelize.query(`

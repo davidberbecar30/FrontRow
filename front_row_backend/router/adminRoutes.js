@@ -23,6 +23,12 @@ router.get('/revenue',
     adminController.getRevenue
 )
 
+// Check-in — admin only
+router.post('/check-in',
+    requireRole('admin'),
+    adminController.checkIn
+)
+
 // Destructive actions: admin only
 router.delete('/observations/:id',
     requireRole('admin'),

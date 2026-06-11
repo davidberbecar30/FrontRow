@@ -35,6 +35,21 @@ Purchase.init(
             type: DataTypes.JSONB,
             allowNull: true,
             defaultValue: null
+        },
+        checkInCode: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            unique: true
+        },
+        checkedIn: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
+        checkedInAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null
         }
     },
     {

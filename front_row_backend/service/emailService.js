@@ -1,4 +1,5 @@
 const https = require('https')
+const { generateQRBuffer, generateQRDataURL } = require('./qrService')
 
 /**
  * emailService.js — Brevo (formerly Sendinblue) HTTP API
@@ -150,4 +151,57 @@ async function sendPasswordResetEmail(email, resetLink) {
     return sendEmail({ to: email, subject, text, html })
 }
 
-module.exports = { sendEmail, sendLoginCode, sendPasswordResetEmail }
+async function sendTicketConfirmation({ to, buyerName, eventTitle, eventDate, eventVenue, quantity, unitPrice, checkInCode }) {
+    const total = (Number(unitPrice) * quantity).toFixed(2)
+
+    // Generate QR as base64 data URL for Brevo inline, or as Buffer for Gmail attachment
+    const brevoKey    = process.env.BREVO_API_KEY
+    const brevoSender = process.env.BREVO_SENDER_EMAIL
+
+    let qrImgTag = ''
+    try {
+        const dataURL = await generateQRDataURL(checkInCode)
+        qrImgTag = `<img src="${dataURL}" alt="Check-in QR Code" style="width:200px;height:200px;display:block;margin:0 auto;" />`
+    } catch (e) {
+        console.error('[emailService] QR generation failed:', e.message)
+        qrImgTag = `<p style="color:#888;font-size:12px;">QR code unavailable — use code: <strong>${checkInCode}</strong></p>`
+    }
+
+    const subject = `Your FrontRow Tickets — ${eventTitle}`
+
+    const html = [
+        `<div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; background: #f9f9f9; border-radius: 8px;">`,
+        `  <h2 style="color: #6C5CE7; margin-bottom: 4px;">You're going!</h2>`,
+        `  <p style="color: #555; font-size: 15px; margin-top: 0;">Hi ${buyerName || 'there'}, your tickets are confirmed.</p>`,
+        `  <div style="background: #fff; border-radius: 8px; padding: 16px; margin: 16px 0; border: 1px solid #eee;">`,
+        `    <p style="margin: 0 0 6px 0; font-size: 18px; font-weight: bold; color: #222;">${eventTitle}</p>`,
+        `    <p style="margin: 0 0 4px 0; color: #666; font-size: 14px;">📅 ${eventDate || 'See event details'}</p>`,
+        `    <p style="margin: 0 0 4px 0; color: #666; font-size: 14px;">📍 ${eventVenue || 'See event details'}</p>`,
+        `    <p style="margin: 0 0 4px 0; color: #666; font-size: 14px;">🎟 ${quantity} ticket${quantity > 1 ? 's' : ''} × $${Number(unitPrice).toFixed(2)} = <strong>$${total}</strong></p>`,
+        `  </div>`,
+        `  <p style="text-align: center; color: #333; font-size: 14px; margin-bottom: 8px;">Show this QR code at the door:</p>`,
+        `  <div style="background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid #eee;">`,
+        `    ${qrImgTag}`,
+        `    <p style="text-align:center; color: #aaa; font-size: 11px; margin-top: 8px;">Code: ${checkInCode}</p>`,
+        `  </div>`,
+        `  <hr style="border: none; border-top: 1px solid #ddd;" />`,
+        `  <p style="color: #aaa; font-size: 12px; text-align: center;">FrontRow — your tickets, your experience.</p>`,
+        `</div>`
+    ].join('\n')
+
+    const text = [
+        `Hi ${buyerName || 'there'}, your FrontRow tickets are confirmed!`,
+        ``,
+        `Event: ${eventTitle}`,
+        `Date:  ${eventDate || 'See event details'}`,
+        `Venue: ${eventVenue || 'See event details'}`,
+        `Qty:   ${quantity} × $${Number(unitPrice).toFixed(2)} = $${total}`,
+        ``,
+        `Your check-in code: ${checkInCode}`,
+        `Show this code (or the QR in the HTML version) at the door.`
+    ].join('\n')
+
+    return sendEmail({ to, subject, text, html })
+}
+
+module.exports = { sendEmail, sendLoginCode, sendPasswordResetEmail, sendTicketConfirmation }

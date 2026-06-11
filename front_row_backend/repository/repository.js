@@ -1,4 +1,5 @@
-const { Event, EventDate, Purchase, UserTicket, UserFavorite, Ticket, sequelize } = require("../model/associations.js")
+const { Event, EventDate, Purchase, UserTicket, UserFavorite, Ticket, User, sequelize } = require("../model/associations.js")
+const { sendTicketConfirmation } = require('../service/emailService')
 const {Op,fn,col}=require("sequelize")
 
 const withDates={include:[{association:"dates"}]}
@@ -240,8 +241,32 @@ class EventRepository{
         event.availableTickets = Math.max(0, event.availableTickets - quantity)
         await event.save()
 
-        const purchase = await Purchase.create({ userId, eventId, quantity, unitPrice: event.price })
+        // Generate a unique check-in code for this purchase
+        const checkInCode = require('crypto').randomUUID()
+
+        const purchase = await Purchase.create({ userId, eventId, quantity, unitPrice: event.price, checkInCode })
         await UserTicket.create({ userId, purchaseId: purchase.id })
+
+        // Send ticket confirmation email with QR code (non-blocking — don't fail purchase if email fails)
+        try {
+            const buyer   = await User.findByPk(userId, { attributes: ['firstName', 'lastName', 'email'] })
+            const dateObj = await EventDate.findByPk(dateId, { attributes: ['date', 'venue', 'location'] })
+            if (buyer) {
+                await sendTicketConfirmation({
+                    to:         buyer.email,
+                    buyerName:  `${buyer.firstName} ${buyer.lastName}`,
+                    eventTitle: event.title,
+                    eventDate:  dateObj ? new Date(dateObj.date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : null,
+                    eventVenue: dateObj ? `${dateObj.venue}, ${dateObj.location}` : null,
+                    quantity,
+                    unitPrice:  event.price,
+                    checkInCode
+                })
+            }
+        } catch (emailErr) {
+            console.error('[purchaseTickets] Failed to send confirmation email:', emailErr.message)
+        }
+
         return { purchase, availableTickets: newCount }
     }
 

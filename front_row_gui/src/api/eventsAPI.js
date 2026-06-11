@@ -325,3 +325,13 @@ export async function saveOutfitSuggestion(purchaseId, outfit) {
     if (!response.ok) throw new Error('Failed to save outfit')
     return response.json()
 }
+
+export async function checkInTicket(code) {
+    const response = await apiFetch('/admin/check-in', {
+        method: 'POST',
+        body:   JSON.stringify({ code })
+    })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) throw new Error(data.error || 'Check-in failed')
+    return data
+}

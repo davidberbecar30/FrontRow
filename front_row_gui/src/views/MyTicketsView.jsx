@@ -1,8 +1,64 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
 import { getMyTickets, getOutfitSuggestion, saveOutfitSuggestion } from '../api/eventsAPI.js'
 import styles from './MyTicketsView.module.css'
+import QRCode from 'qrcode'
+
+// ── QR Ticket Modal ───────────────────────────────────────────────────────────
+function QRModal({ purchase, onClose }) {
+    const canvasRef = useRef(null)
+
+    useEffect(() => {
+        if (!purchase?.checkInCode || !canvasRef.current) return
+        QRCode.toCanvas(canvasRef.current, purchase.checkInCode, {
+            width: 220,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+        })
+    }, [purchase])
+
+    if (!purchase) return null
+    const ev = purchase.event
+
+    return (
+        <div className={styles.modalOverlay} onClick={onClose}>
+            <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
+                <div className={styles.modalHeader}>
+                    <h2 className={styles.modalTitle}>Your Ticket QR</h2>
+                    <button className={styles.closeBtn} onClick={onClose}>✕</button>
+                </div>
+                <p className={styles.modalSub}>
+                    Show this at the door for <strong>{ev?.title}</strong>
+                </p>
+                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                    {purchase.checkInCode
+                        ? <canvas ref={canvasRef} style={{ borderRadius: 8 }} />
+                        : <p style={{ color: '#888' }}>QR code not available for this ticket.</p>
+                    }
+                    {purchase.checkedIn && (
+                        <div style={{
+                            marginTop: 12,
+                            padding: '8px 16px',
+                            background: '#d4edda',
+                            borderRadius: 6,
+                            color: '#155724',
+                            fontWeight: 600,
+                            fontSize: 14
+                        }}>
+                            Already checked in
+                        </div>
+                    )}
+                    {purchase.checkInCode && (
+                        <p style={{ color: '#aaa', fontSize: 11, marginTop: 8, wordBreak: 'break-all' }}>
+                            {purchase.checkInCode}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
 
 // ── Outfit Modal ──────────────────────────────────────────────────────────────
 function OutfitModal({ purchase, onClose, onSave }) {
@@ -146,6 +202,7 @@ function MyTicketsView() {
     const [loading, setLoading]           = useState(true)
     const [error, setError]               = useState(null)
     const [activeOutfit, setActiveOutfit] = useState(null)
+    const [activeQR, setActiveQR]         = useState(null)
 
     useEffect(() => {
         getMyTickets()
@@ -209,6 +266,16 @@ function MyTicketsView() {
                                     {p.outfitSuggestion && (
                                         <span className={styles.savedBadge}>Look saved</span>
                                     )}
+                                    {p.checkedIn && (
+                                        <span className={styles.savedBadge} style={{ background: '#d4edda', color: '#155724' }}>Checked in</span>
+                                    )}
+                                    <button
+                                        className={styles.wearBtn}
+                                        style={{ background: '#2d3436' }}
+                                        onClick={() => setActiveQR(p)}
+                                    >
+                                        Show QR
+                                    </button>
                                     <button
                                         className={styles.wearBtn}
                                         onClick={() => setActiveOutfit(p)}
@@ -221,6 +288,13 @@ function MyTicketsView() {
                     })}
                 </div>
             </div>
+
+            {activeQR && (
+                <QRModal
+                    purchase={activeQR}
+                    onClose={() => setActiveQR(null)}
+                />
+            )}
 
             {activeOutfit && (
                 <OutfitModal
