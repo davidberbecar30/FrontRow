@@ -178,7 +178,7 @@ async function completeDraw(drawId) {
     const userIds = entries.map(e => e.userId)
 
     // Count total purchased tickets per user (sum of quantities)
-    const [countRows] = await sequelize.query(
+    const countRows = await sequelize.query(
         `SELECT "userId", SUM(quantity) AS total
          FROM purchases
          WHERE "userId" IN (:userIds)
