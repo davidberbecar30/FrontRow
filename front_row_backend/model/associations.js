@@ -13,6 +13,8 @@ const { LoginCode } = require('./LoginCode.js')
 const { Purchase }  = require('./Purchase.js')
 const { UserTicket } = require('./UserTicket.js')
 const { UserFavorite } = require('./UserFavorite.js')
+const { PrizeDraw }  = require('./PrizeDraw.js')
+const { PrizeDrawEntry } = require('./PrizeDrawEntry.js')
 
 Event.hasMany(Ticket,        { foreignKey: 'eventId',     as: 'tickets' })
 Ticket.belongsTo(Event,      { foreignKey: 'eventId',     as: 'event'   })
@@ -64,11 +66,22 @@ UserFavorite.belongsTo(User,      { foreignKey: 'userId',  as: 'user' })
 Event.hasMany(UserFavorite,       { foreignKey: 'eventId', as: 'userFavorites' })
 UserFavorite.belongsTo(Event,     { foreignKey: 'eventId', as: 'event' })
 
+// Prize draw
+PrizeDraw.belongsTo(Event,    { foreignKey: 'eventId',     as: 'event'   })
+PrizeDraw.belongsTo(EventDate,{ foreignKey: 'eventDateId', as: 'eventDate' })
+PrizeDraw.belongsTo(User,     { foreignKey: 'winnerId',    as: 'winner'  })
+PrizeDraw.belongsTo(User,     { foreignKey: 'createdBy',   as: 'creator' })
+PrizeDraw.hasMany(PrizeDrawEntry, { foreignKey: 'drawId', as: 'entries' })
+PrizeDrawEntry.belongsTo(PrizeDraw, { foreignKey: 'drawId', as: 'draw' })
+PrizeDrawEntry.belongsTo(User,      { foreignKey: 'userId', as: 'user' })
+User.hasMany(PrizeDrawEntry,        { foreignKey: 'userId', as: 'drawEntries' })
+
 module.exports = {
     sequelize,
     Event, Ticket, EventDate,
     User, Role, Permission,
     Log, ObservationList,
     RefreshToken, PasswordResetToken,
-    LoginCode, Purchase, UserTicket, UserFavorite
+    LoginCode, Purchase, UserTicket, UserFavorite,
+    PrizeDraw, PrizeDrawEntry
 }

@@ -1,0 +1,125 @@
+.page {
+    min-height: 100vh;
+    background: #0D0B1E;
+    font-family: 'Inter', sans-serif;
+}
+
+.content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.pageTitle {
+    font-size: 28px;
+    font-weight: 700;
+    color: #E8E4F9;
+    margin: 0 0 0.35rem;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #8892A4;
+    margin: 0 0 2rem;
+    line-height: 1.5;
+}
+
+.card {
+    background: #1A1535;
+    border: 1px solid #2e2855;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.cardTitle {
+    font-size: 17px;
+    font-weight: 600;
+    color: #E8E4F9;
+    margin: 0 0 1.2rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #A29BFE;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.4rem;
+}
+
+.select,
+.input {
+    width: 100%;
+    padding: 10px 12px;
+    background: #221D42;
+    border: 1px solid #3d3672;
+    border-radius: 8px;
+    color: #E8E4F9;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+.select:focus,
+.input:focus { border-color: #6C5CE7; }
+.select option { background: #221D42; }
+
+.error   { color: #FF7675; font-size: 13px; margin: 0; }
+.success { color: #00B894; font-size: 13px; margin: 0; }
+
+.submitBtn {
+    margin-top: 0.8rem;
+    padding: 12px;
+    background: #6C5CE7;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.submitBtn:hover:not(:disabled) { background: #5849c4; }
+.submitBtn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Table */
+.tableWrap { overflow-x: auto; }
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    color: #E8E4F9;
+}
+.table th {
+    text-align: left;
+    padding: 8px 10px;
+    color: #8892A4;
+    font-weight: 600;
+    border-bottom: 1px solid #2e2855;
+    white-space: nowrap;
+}
+.table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #221D42;
+}
+.table tr:last-child td { border-bottom: none; }
+
+.statusBadge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status_active    { background: #1e4d3a; color: #00B894; }
+.status_completed { background: #1a1860; color: #A29BFE; }
+.status_cancelled { background: #3d1a1a; color: #FF7675; }

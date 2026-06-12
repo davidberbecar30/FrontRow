@@ -12,7 +12,8 @@ const { createIndices } = require('./seed/createIndices')
 const { connectMongo } = require('./mongoDb')
 console.log('2. associations loaded')
 
-const { initWebSocket } = require('./websocket/wsServer')
+const { initWebSocket }        = require('./websocket/wsServer')
+const { schedulePendingDraws } = require('./service/prizeDrawService')
 
 const PORT = process.env.PORT || 3000
 const HOST = '0.0.0.0'
@@ -175,6 +176,11 @@ async function start() {
             CREATE UNIQUE INDEX IF NOT EXISTS user_favorites_user_event_unique
                 ON user_favorites ("userId", "eventId");
         `)
+        // prize_draw_entries unique index
+        await sequelize.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS prize_draw_entries_draw_user_unique
+                ON prize_draw_entries ("drawId", "userId");
+        `)
         console.log('5b. explicit column migrations done')
 
         await createIndices()
@@ -191,6 +197,9 @@ async function start() {
 
         await backfillEventImages()
         console.log('6d. event images backfilled')
+
+        await schedulePendingDraws()
+        console.log('6e. prize draw timers scheduled')
 
         await connectMongo()
         console.log('7. mongo connected')

@@ -9,6 +9,17 @@ function initWebSocket(server) {
     wss.on('connection', (ws) => {
         console.log('Client connected via WebSocket')
 
+        // Send active draw immediately so newly-connected clients don't miss it
+        try {
+            const prizeDrawService = require('../service/prizeDrawService')
+            const activeDraw = prizeDrawService.getCachedActiveDraw()
+            if (activeDraw) {
+                ws.send(JSON.stringify({ type: 'PRIZE_DRAW_STARTED', draw: activeDraw }))
+            }
+        } catch (e) {
+            // Service not loaded yet on very first boot — harmless
+        }
+
         ws.on('message', async (raw) => {
             let data
             try {
