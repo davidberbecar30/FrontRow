@@ -136,7 +136,7 @@ function AdminPrizeDrawView() {
                         {success && <p className={styles.success}>{success}</p>}
 
                         <button className={styles.submitBtn} type="submit" disabled={loading}>
-                            {loading ? 'Starting…' : '🎰 Start Draw'}
+                            {loading ? 'Starting…' : ' Start Draw'}
                         </button>
                     </form>
                 </div>
