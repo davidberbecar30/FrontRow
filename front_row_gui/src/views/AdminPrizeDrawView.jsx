@@ -22,7 +22,7 @@ function AdminPrizeDrawView() {
         // Load all events for the picker
         apiFetch('/events?limit=100')
             .then(r => r.json())
-            .then(d => setEvents(d.rows || d.events || []))
+            .then(d => setEvents(d.data || d.rows || d.events || []))
             .catch(() => {})
 
         loadDraws()
